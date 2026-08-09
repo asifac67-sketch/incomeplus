@@ -87,10 +87,35 @@ document.addEventListener("DOMContentLoaded", () => {
         const daily = Math.round(plan.monthly_profit / 30);
         return `
           <button type="button" class="plan-card ${plan.is_featured ? "featured" : ""}" data-amount="${plan.amount}">
-            <span class="plan-badge">${escapeHtml(plan.badge_label)}</span>
-            <span class="plan-amount">${formatPkr(plan.amount)}</span>
-            <span class="plan-note">${escapeHtml(plan.note)}</span>
-            <span class="plan-profit"><i class="fa-solid fa-arrow-trend-up"></i> ${formatPkr(plan.monthly_profit)}<small>/mo</small> <em>&asymp; ${formatPkr(daily)}/day</em></span>
+            <span class="plan-badge"><i class="fa-solid fa-star"></i> ${escapeHtml(plan.badge_label)}</span>
+
+            <div class="plan-card-icon"><i class="fa-solid fa-sack-dollar"></i></div>
+
+            <div class="plan-price-block">
+              <span class="plan-price-label">Package Price</span>
+              <span class="plan-amount">${formatPkr(plan.amount)}</span>
+            </div>
+
+            <div class="plan-stats-list">
+              <div class="plan-stat-row stat-validity">
+                <span class="plan-stat-icon"><i class="fa-solid fa-calendar-days"></i></span>
+                <span class="plan-stat-label">Validity</span>
+                <span class="plan-stat-value">30<small>days</small></span>
+              </div>
+              <div class="plan-stat-row stat-daily">
+                <span class="plan-stat-icon"><i class="fa-solid fa-arrow-trend-up"></i></span>
+                <span class="plan-stat-label">Daily Income</span>
+                <span class="plan-stat-value">${formatPkr(daily)}<small>/day</small></span>
+              </div>
+              <div class="plan-stat-row stat-total">
+                <span class="plan-stat-icon"><i class="fa-solid fa-coins"></i></span>
+                <span class="plan-stat-label">Total Profit</span>
+                <span class="plan-stat-value">${formatPkr(plan.monthly_profit)}</span>
+              </div>
+            </div>
+
+            <span class="plan-note"><i class="fa-solid fa-circle-check"></i> ${escapeHtml(plan.note)}</span>
+            <span class="plan-select-indicator"><i class="fa-solid fa-circle-check"></i> Selected</span>
           </button>
         `;
       })
