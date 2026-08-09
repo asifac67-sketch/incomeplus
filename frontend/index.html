@@ -1,0 +1,846 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>IncomePlus — Grow Your Income, Securely</title>
+<meta name="description" content="IncomePlus — a secure, modern investment platform for users and admins." />
+
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+
+<link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+<!-- Ambient background -->
+<div class="bg-ambient" aria-hidden="true">
+  <span class="orb orb-1"></span>
+  <span class="orb orb-2"></span>
+  <span class="orb orb-3"></span>
+  <div class="grid-overlay"></div>
+</div>
+
+<!-- ===== Header ===== -->
+<header class="site-header" id="siteHeader">
+  <div class="container header-inner">
+    <a href="#home" class="brand">
+      <span class="brand-mark"><i class="fa-solid fa-shield-halved"></i></span>
+      <span class="brand-name">Income<span class="brand-accent">Plus</span></span>
+    </a>
+
+    <nav class="main-nav" id="mainNav">
+      <a href="#home" class="nav-link active">Home</a>
+      <a href="#features" class="nav-link">Features</a>
+      <a href="#about" class="nav-link">About</a>
+      <a href="#contact" class="nav-link">Contact</a>
+    </nav>
+
+    <div class="header-actions">
+      <div class="auth-buttons" id="authButtons">
+        <button class="btn btn-ghost" id="openLoginBtn">Log In</button>
+        <button class="btn btn-primary" id="openSignupBtn">
+          <span>Sign Up</span>
+          <i class="fa-solid fa-arrow-right"></i>
+        </button>
+      </div>
+
+      <div class="user-chip" id="userChip" hidden>
+        <span class="user-chip-avatar"><i class="fa-solid fa-user"></i></span>
+        <span class="user-chip-name" id="userChipName">User</span>
+        <a href="dashboard.html" class="user-chip-dashboard" title="Go to dashboard" aria-label="Go to dashboard">
+          <i class="fa-solid fa-gauge-high"></i>
+        </a>
+        <button class="user-chip-logout" id="logoutBtn" title="Log out" aria-label="Log out">
+          <i class="fa-solid fa-arrow-right-from-bracket"></i>
+        </button>
+      </div>
+
+      <button class="nav-toggle" id="navToggle" aria-label="Toggle navigation">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </div>
+</header>
+
+<!-- ===== Wallet Overview (below header) ===== -->
+<section class="wallet-section" id="walletSection">
+  <div class="container">
+
+    <div class="wallet-locked" id="walletLocked">
+      <div class="wallet-locked-icon"><i class="fa-solid fa-lock"></i></div>
+      <div class="wallet-locked-text">
+        <h3>Your Dashboard is Waiting</h3>
+        <p>Log in to view your total earning, investment and withdrawal amount.</p>
+      </div>
+      <button class="btn btn-primary" id="walletLoginBtn">
+        <i class="fa-solid fa-right-to-bracket"></i>
+        <span>Log In</span>
+      </button>
+    </div>
+
+    <div class="wallet-grid" id="walletGrid" hidden>
+      <div class="wallet-card wallet-earning">
+        <div class="wallet-card-icon"><i class="fa-solid fa-sack-dollar"></i></div>
+        <div class="wallet-card-info">
+          <span class="wallet-card-label">Total Earning</span>
+          <span class="wallet-card-amount" id="totalEarningAmount">$0.00</span>
+        </div>
+      </div>
+
+      <div class="wallet-card wallet-investment">
+        <div class="wallet-card-icon"><i class="fa-solid fa-chart-line"></i></div>
+        <div class="wallet-card-info">
+          <span class="wallet-card-label">Total Investment</span>
+          <span class="wallet-card-amount" id="totalInvestmentAmount">$0.00</span>
+        </div>
+      </div>
+
+      <button type="button" class="wallet-card wallet-withdrawal wallet-card-clickable" id="withdrawCardBtn">
+        <div class="wallet-card-icon"><i class="fa-solid fa-money-bill-transfer"></i></div>
+        <div class="wallet-card-info">
+          <span class="wallet-card-label">Withdrawal Amount</span>
+          <span class="wallet-card-amount" id="withdrawalAmount">$0.00</span>
+        </div>
+        <span class="wallet-card-cta"><i class="fa-solid fa-arrow-right"></i> Withdraw</span>
+      </button>
+    </div>
+
+    <div class="investments-history" id="investmentsHistory" hidden>
+      <h4><i class="fa-solid fa-clock-rotate-left"></i> Your Investment Requests</h4>
+      <div class="investment-list" id="investmentList"></div>
+    </div>
+
+    <div class="investments-history" id="withdrawalsHistory" hidden>
+      <h4><i class="fa-solid fa-money-bill-transfer"></i> Your Withdrawal Requests</h4>
+      <div class="investment-list" id="withdrawalList"></div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ===== Invest Now CTA (below wallet overview) ===== -->
+<section class="invest-cta" id="investCta">
+  <div class="container">
+    <div class="invest-cta-inner">
+      <div class="invest-cta-icon"><i class="fa-solid fa-coins"></i></div>
+      <div class="invest-cta-text">
+        <span class="eyebrow">Start Growing</span>
+        <h3>Ready to invest? Choose a plan and get started in minutes.</h3>
+      </div>
+      <button class="btn btn-primary btn-lg" id="investNowBtn">
+        <i class="fa-solid fa-arrow-trend-up"></i>
+        <span>Invest Now</span>
+      </button>
+    </div>
+  </div>
+</section>
+
+<!-- ===== Hero ===== -->
+<main>
+  <section class="hero" id="home">
+    <div class="container hero-inner">
+
+      <div class="hero-copy">
+        <div class="hero-badge">
+          <i class="fa-solid fa-sparkles"></i>
+          <span>New here? Create your free account in seconds</span>
+        </div>
+
+        <h1 class="hero-title">
+          Welcome to <span class="text-gradient">IncomePlus</span> —
+          your secure space to invest, earn and grow.
+        </h1>
+
+        <p class="hero-subtitle">
+          A modern, reliable platform built for both everyday users and admins.
+          Create your account, log in securely, and pick up right where you left off —
+          every single time.
+        </p>
+
+        <div class="hero-cta">
+          <button class="btn btn-primary btn-lg" id="heroGetStartedBtn">
+            <i class="fa-solid fa-user-plus"></i>
+            <span>Get Started Free</span>
+          </button>
+          <button class="btn btn-outline btn-lg" id="heroLoginBtn">
+            <i class="fa-solid fa-right-to-bracket"></i>
+            <span>I already have an account</span>
+          </button>
+        </div>
+
+        <div class="hero-stats">
+          <div class="stat">
+            <span class="stat-num">10K+</span>
+            <span class="stat-label">Active Users</span>
+          </div>
+          <div class="stat">
+            <span class="stat-num">99.9%</span>
+            <span class="stat-label">Uptime</span>
+          </div>
+          <div class="stat">
+            <span class="stat-num">24/7</span>
+            <span class="stat-label">Support</span>
+          </div>
+          <div class="stat">
+            <span class="stat-num">100%</span>
+            <span class="stat-label">Secure Auth</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="hero-visual">
+        <div class="hero-card glass-card">
+          <div class="hero-card-header">
+            <div class="dot-group">
+              <span class="dot red"></span>
+              <span class="dot yellow"></span>
+              <span class="dot green"></span>
+            </div>
+            <span class="hero-card-title">Welcome Back</span>
+          </div>
+
+          <div class="hero-card-avatar">
+            <i class="fa-solid fa-user-astronaut"></i>
+          </div>
+
+          <div class="hero-card-line w-80"></div>
+          <div class="hero-card-line w-60"></div>
+
+          <div class="hero-card-pill">
+            <i class="fa-solid fa-circle-check"></i>
+            <span>Identity Verified</span>
+          </div>
+
+          <div class="hero-card-footer">
+            <div class="mini-btn">Login</div>
+            <div class="mini-btn mini-btn-outline">Sign Up</div>
+          </div>
+        </div>
+
+        <div class="float-chip chip-1"><i class="fa-solid fa-lock"></i> Encrypted</div>
+        <div class="float-chip chip-2"><i class="fa-solid fa-bolt"></i> Fast Access</div>
+        <div class="float-chip chip-3"><i class="fa-solid fa-user-shield"></i> Admin Ready</div>
+      </div>
+
+    </div>
+
+    <div class="hero-scroll-cue">
+      <span>Scroll</span>
+      <i class="fa-solid fa-chevron-down"></i>
+    </div>
+  </section>
+
+  <!-- ===== Daily Bonus Wheel ===== -->
+  <section class="bonus-section" id="daily-bonus">
+    <div class="container">
+      <div class="bonus-card glass-card">
+
+        <div class="bonus-info">
+          <span class="hero-badge bonus-badge">
+            <i class="fa-solid fa-gift"></i>
+            <span>New Member Reward</span>
+          </span>
+
+          <h2>Spin the Wheel, <span class="text-gradient">Win a Daily Bonus</span></h2>
+          <p>New members get one free spin today and one more tomorrow. Most spins land on <strong>Rs 500</strong> — try your luck!</p>
+
+          <ul class="bonus-points">
+            <li><i class="fa-solid fa-circle-check"></i> One spin on Day 1, one more on Day 2</li>
+            <li><i class="fa-solid fa-circle-check"></i> Winnings are added straight to your Total Earning</li>
+            <li><i class="fa-solid fa-circle-check"></i> Only for new members — so don't miss it</li>
+          </ul>
+
+          <button class="btn btn-primary btn-lg" id="bonusSignupBtn">
+            <i class="fa-solid fa-gift"></i>
+            <span>Sign Up to Spin</span>
+          </button>
+
+          <div class="bonus-status-message" id="bonusStatusMessage" hidden></div>
+        </div>
+
+        <div class="bonus-wheel-area">
+          <div class="wheel-wrap">
+            <div class="wheel-pointer"><i class="fa-solid fa-caret-down"></i></div>
+            <div class="wheel" id="bonusWheel">
+              <div class="wheel-labels" id="wheelLabels"></div>
+            </div>
+            <button type="button" class="wheel-hub" id="spinBtn" disabled>
+              <span class="btn-text">SPIN</span>
+              <i class="fa-solid fa-circle-notch fa-spin btn-spinner"></i>
+            </button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== Market / Platform Growth ===== -->
+  <section class="market-section" id="market">
+    <div class="container">
+      <div class="section-heading">
+        <span class="eyebrow">Real Growth</span>
+        <h2>Platform Investment Growth</h2>
+        <p>Total capital invested through IncomePlus, tracked month over month.</p>
+      </div>
+
+      <div class="market-card glass-card">
+        <div class="market-stats">
+          <div class="market-stat">
+            <span class="market-stat-label">Total Invested Volume</span>
+            <span class="market-stat-value" id="marketTotalVolume">Rs 0</span>
+          </div>
+          <div class="market-stat">
+            <span class="market-stat-label">Growth (12 months)</span>
+            <span class="market-stat-value market-stat-delta" id="marketGrowthDelta">+0%</span>
+          </div>
+          <div class="market-stat">
+            <span class="market-stat-label">Active Investors</span>
+            <span class="market-stat-value" id="marketInvestors">0</span>
+          </div>
+        </div>
+
+        <div class="market-chart-wrap">
+          <svg
+            class="market-chart"
+            id="marketChart"
+            viewBox="0 0 760 300"
+            preserveAspectRatio="none"
+            role="img"
+            aria-label="Line chart of IncomePlus's total platform investment volume over the last 12 months, trending upward"
+            tabindex="0"
+          ></svg>
+          <div class="market-tooltip" id="marketTooltip" hidden>
+            <span class="market-tooltip-month" id="marketTooltipMonth">Jan</span>
+            <strong class="market-tooltip-value" id="marketTooltipValue">Rs 0</strong>
+          </div>
+        </div>
+
+        <button type="button" class="market-table-toggle" id="marketTableToggle">
+          <i class="fa-solid fa-table"></i>
+          <span>View data as table</span>
+        </button>
+
+        <div class="market-table-wrap" id="marketTableWrap" hidden>
+          <table class="market-table">
+            <thead>
+              <tr><th>Month</th><th>Total Invested Volume</th></tr>
+            </thead>
+            <tbody id="marketTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== How It Works (Protocol Flow) ===== -->
+  <section class="process-section" id="how-it-works">
+    <div class="container">
+      <div class="section-heading process-heading">
+        <span class="hero-badge process-badge">
+          <i class="fa-solid fa-diagram-project"></i>
+          <span>How It Works</span>
+        </span>
+        <h2>From Sign-Up to <span class="text-gradient">Payout</span></h2>
+        <p>Every rupee you invest is tracked, verified and paid out. Here's exactly what happens between signing up and your withdrawal.</p>
+      </div>
+
+      <div class="process-grid">
+        <div class="process-card">
+          <div class="process-card-top">
+            <div class="process-icon-wrap">
+              <div class="process-icon"><i class="fa-solid fa-user-plus"></i></div>
+              <span class="process-step-num">01</span>
+            </div>
+            <span class="process-step-label">Step 1/4</span>
+          </div>
+          <h3>Create Your Account</h3>
+          <p>Sign up as a user in seconds and secure your profile with a password — no paperwork, no waiting.</p>
+        </div>
+
+        <div class="process-card">
+          <div class="process-card-top">
+            <div class="process-icon-wrap">
+              <div class="process-icon"><i class="fa-solid fa-layer-group"></i></div>
+              <span class="process-step-num">02</span>
+            </div>
+            <span class="process-step-label">Step 2/4</span>
+          </div>
+          <h3>Choose a Plan</h3>
+          <p>Pick an investment plan that fits your budget, from Rs 2,000 up to Rs 20,000.</p>
+        </div>
+
+        <div class="process-card">
+          <div class="process-card-top">
+            <div class="process-icon-wrap">
+              <div class="process-icon"><i class="fa-solid fa-file-shield"></i></div>
+              <span class="process-step-num">03</span>
+            </div>
+            <span class="process-step-label">Step 3/4</span>
+          </div>
+          <h3>Send Payment &amp; Get Verified</h3>
+          <p>Transfer to our account, submit your transaction ID and screenshot — our team verifies and approves it.</p>
+        </div>
+
+        <div class="process-card">
+          <div class="process-card-top">
+            <div class="process-icon-wrap">
+              <div class="process-icon"><i class="fa-solid fa-money-bill-transfer"></i></div>
+              <span class="process-step-num">04</span>
+            </div>
+            <span class="process-step-label">Step 4/4</span>
+          </div>
+          <h3>Track, Earn &amp; Withdraw</h3>
+          <p>Watch your dashboard update in real time, then withdraw your earnings whenever you're ready.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== Features (supporting section for a fuller pro look) ===== -->
+  <section class="features" id="features">
+    <div class="container">
+      <div class="section-heading">
+        <span class="eyebrow">Why IncomePlus</span>
+        <h2>Built for both users and admins</h2>
+        <p>One platform, two experiences — every account gets a secure, role-based sign-in.</p>
+      </div>
+
+      <div class="features-grid">
+        <div class="feature-card">
+          <div class="feature-icon"><i class="fa-solid fa-user"></i></div>
+          <h3>User Accounts</h3>
+          <p>Quick sign up, secure login, and a "Remember Me" option so you're never logged out too soon.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon"><i class="fa-solid fa-user-shield"></i></div>
+          <h3>Admin Portal</h3>
+          <p>A dedicated, code-protected admin sign-in keeps management access separate and secure.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon"><i class="fa-solid fa-database"></i></div>
+          <h3>PostgreSQL Backed</h3>
+          <p>Every account is safely stored and password-hashed in a real PostgreSQL database.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon"><i class="fa-solid fa-bolt"></i></div>
+          <h3>FastAPI Powered</h3>
+          <p>A lightweight, high-performance FastAPI backend handles authentication in milliseconds.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<!-- ===== Footer ===== -->
+<footer class="site-footer" id="contact">
+  <div class="container footer-inner">
+    <div class="brand footer-brand">
+      <span class="brand-mark"><i class="fa-solid fa-shield-halved"></i></span>
+      <span class="brand-name">Income<span class="brand-accent">Plus</span></span>
+    </div>
+    <p class="footer-copy">&copy; <span id="footerYear"></span> IncomePlus. All rights reserved.</p>
+  </div>
+</footer>
+
+<!-- ===== Auth Modal ===== -->
+<div class="modal-overlay" id="authOverlay">
+  <div class="auth-modal" role="dialog" aria-modal="true" aria-labelledby="authModalTitle">
+    <button class="modal-close" id="authCloseBtn" aria-label="Close">
+      <i class="fa-solid fa-xmark"></i>
+    </button>
+
+    <div class="auth-modal-header">
+      <span class="brand-mark"><i class="fa-solid fa-shield-halved"></i></span>
+      <h2 id="authModalTitle">Welcome to IncomePlus</h2>
+      <p id="authModalSubtitle">New user? Sign up in seconds. Returning? Log right back in.</p>
+    </div>
+
+    <!-- Login / Signup tabs -->
+    <div class="auth-tabs">
+      <button class="auth-tab active" data-tab="login">Log In</button>
+      <button class="auth-tab" data-tab="signup">Sign Up</button>
+    </div>
+
+    <!-- User / Admin role toggle -->
+    <div class="role-toggle" id="roleToggle">
+      <button class="role-btn active" data-role="user">
+        <i class="fa-solid fa-user"></i> User
+      </button>
+      <button class="role-btn" data-role="admin">
+        <i class="fa-solid fa-user-shield"></i> Admin
+      </button>
+    </div>
+
+    <div class="auth-alert" id="authAlert"></div>
+
+    <!-- ===== Login Form ===== -->
+    <form class="auth-form active" id="loginForm" autocomplete="on">
+      <div class="form-group">
+        <label for="loginEmail">Email Address</label>
+        <div class="input-wrap">
+          <i class="fa-solid fa-envelope"></i>
+          <input type="email" id="loginEmail" name="email" placeholder="you@example.com" required />
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="loginPassword">Password</label>
+        <div class="input-wrap">
+          <i class="fa-solid fa-lock"></i>
+          <input type="password" id="loginPassword" name="password" placeholder="••••••••" required minlength="8" />
+          <button type="button" class="input-icon-btn toggle-password" data-target="loginPassword" aria-label="Show password">
+            <i class="fa-solid fa-eye"></i>
+          </button>
+        </div>
+      </div>
+
+      <div class="form-row-between">
+        <label class="checkbox-wrap">
+          <input type="checkbox" id="rememberMe" name="remember_me" />
+          <span class="checkbox-box"></span>
+          <span>Remember me</span>
+        </label>
+        <a href="#" class="link-muted" id="forgotPasswordLink">Forgot password?</a>
+      </div>
+
+      <button type="submit" class="btn btn-primary btn-block" id="loginSubmitBtn">
+        <span class="btn-text">Log In</span>
+        <i class="fa-solid fa-circle-notch fa-spin btn-spinner"></i>
+      </button>
+
+      <p class="auth-switch">
+        Don't have an account? <button type="button" class="link-btn" data-switch="signup">Sign up</button>
+      </p>
+    </form>
+
+    <!-- ===== Signup Form ===== -->
+    <form class="auth-form" id="signupForm" autocomplete="on">
+
+      <p class="referred-note" id="referredByNote" hidden>
+        <i class="fa-solid fa-user-group"></i>
+        You were invited by a friend — sign up to get started!
+      </p>
+
+      <div class="form-section-label"><span>Identity</span></div>
+
+      <div class="form-group">
+        <label for="signupName">Full Name</label>
+        <div class="input-wrap">
+          <i class="fa-solid fa-id-card"></i>
+          <input type="text" id="signupName" name="full_name" placeholder="Your full name" required minlength="2" />
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="signupEmail">Email Address</label>
+        <div class="input-wrap">
+          <i class="fa-solid fa-envelope"></i>
+          <input type="email" id="signupEmail" name="email" placeholder="you@example.com" required />
+        </div>
+      </div>
+
+      <div class="form-section-label"><span>Password</span></div>
+
+      <div class="form-grid-2">
+        <div class="form-group">
+          <label for="signupPassword">Password</label>
+          <div class="input-wrap">
+            <i class="fa-solid fa-lock"></i>
+            <input type="password" id="signupPassword" name="password" placeholder="Min. 8 characters" required minlength="8" />
+            <button type="button" class="input-icon-btn toggle-password" data-target="signupPassword" aria-label="Show password">
+              <i class="fa-solid fa-eye"></i>
+            </button>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="signupConfirmPassword">Confirm Password</label>
+          <div class="input-wrap">
+            <i class="fa-solid fa-lock"></i>
+            <input type="password" id="signupConfirmPassword" name="confirm_password" placeholder="Re-enter password" required minlength="8" />
+            <button type="button" class="input-icon-btn toggle-password" data-target="signupConfirmPassword" aria-label="Show password">
+              <i class="fa-solid fa-eye"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-section-label"><span>Contact</span></div>
+
+      <div class="form-grid-2">
+        <div class="form-group">
+          <label for="signupPhone">Mobile Number</label>
+          <div class="input-wrap phone-input-wrap">
+            <i class="fa-solid fa-phone"></i>
+            <span class="phone-prefix">+92</span>
+            <input type="tel" id="signupPhone" name="phone_number" placeholder="3XX XXXXXXX" required minlength="7" inputmode="numeric" />
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="signupCountry">Country</label>
+          <div class="input-wrap select-wrap">
+            <i class="fa-solid fa-globe"></i>
+            <select id="signupCountry" name="country" required>
+              <option value="Pakistan" selected>Pakistan</option>
+              <option value="India">India</option>
+              <option value="United Arab Emirates">United Arab Emirates</option>
+              <option value="Saudi Arabia">Saudi Arabia</option>
+              <option value="United Kingdom">United Kingdom</option>
+              <option value="United States">United States</option>
+              <option value="Other">Other</option>
+            </select>
+            <i class="fa-solid fa-chevron-down select-caret"></i>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-group" id="adminCodeGroup" hidden>
+        <label for="adminCode">Admin Registration Code</label>
+        <div class="input-wrap">
+          <i class="fa-solid fa-key"></i>
+          <input type="password" id="adminCode" name="admin_code" placeholder="Provided by super-admin" />
+        </div>
+      </div>
+
+      <label class="checkbox-wrap terms-check">
+        <input type="checkbox" id="agreeTerms" name="agree_terms" required />
+        <span class="checkbox-box"></span>
+        <span>I agree to the Terms of Service and Privacy Policy</span>
+      </label>
+
+      <button type="submit" class="btn btn-primary btn-block" id="signupSubmitBtn">
+        <span class="btn-text">Create Account</span>
+        <i class="fa-solid fa-circle-notch fa-spin btn-spinner"></i>
+      </button>
+
+      <p class="auth-switch">
+        Already have an account? <button type="button" class="link-btn" data-switch="login">Log in</button>
+      </p>
+
+      <p class="trust-note">
+        <i class="fa-solid fa-shield-halved"></i>
+        Passwords hashed with bcrypt · Stored in PostgreSQL · JWT-secured sessions
+      </p>
+    </form>
+  </div>
+</div>
+
+<!-- ===== Investment Modal ===== -->
+<div class="modal-overlay" id="investmentOverlay">
+  <div class="auth-modal investment-modal" role="dialog" aria-modal="true" aria-labelledby="investmentModalTitle">
+    <button class="modal-close" id="investmentCloseBtn" aria-label="Close">
+      <i class="fa-solid fa-xmark"></i>
+    </button>
+
+    <div class="auth-modal-header">
+      <span class="brand-mark"><i class="fa-solid fa-coins"></i></span>
+      <h2 id="investmentModalTitle">Choose Your Investment Plan</h2>
+      <p id="investmentModalSubtitle">Pick an amount to get started — you can invest again anytime.</p>
+    </div>
+
+    <div class="auth-alert" id="investmentAlert"></div>
+
+    <!-- Step 1: Plan selection -->
+    <div class="invest-step" id="investStepPlans">
+      <div class="plan-grid" id="planGrid"></div>
+
+      <p class="plan-disclaimer">
+        <i class="fa-solid fa-circle-info"></i>
+        Profit shown is the expected monthly return, credited daily once your investment is approved.
+      </p>
+
+      <button type="button" class="btn btn-primary btn-block" id="planContinueBtn" disabled>
+        <span>Continue</span>
+        <i class="fa-solid fa-arrow-right"></i>
+      </button>
+    </div>
+
+    <!-- Step 2: Payment details -->
+    <div class="invest-step" id="investStepPayment" hidden>
+      <div class="payment-summary">
+        <span>You're investing</span>
+        <strong id="selectedAmountText">Rs 0</strong>
+      </div>
+
+      <div class="profit-summary" id="profitSummary">
+        <i class="fa-solid fa-arrow-trend-up"></i>
+        <span>Expected profit: <strong id="profitMonthlyText">Rs 0/mo</strong> <em id="profitDailyText">(&asymp; Rs 0/day)</em></span>
+      </div>
+
+      <div class="payment-details-card">
+        <div class="payment-detail-row">
+          <span class="payment-detail-label"><i class="fa-solid fa-building-columns"></i> Bank Name</span>
+          <span class="payment-detail-value">O Pay</span>
+        </div>
+        <div class="payment-detail-row">
+          <span class="payment-detail-label"><i class="fa-solid fa-user"></i> Account Holder</span>
+          <span class="payment-detail-value">Hafeez</span>
+        </div>
+        <div class="payment-detail-row">
+          <span class="payment-detail-label"><i class="fa-solid fa-hashtag"></i> Account Number</span>
+          <span class="payment-detail-value payment-account-number">
+            <span id="accountNumberText">03213628639</span>
+            <button type="button" class="copy-btn" id="copyAccountBtn" title="Copy account number" aria-label="Copy account number">
+              <i class="fa-solid fa-copy"></i>
+            </button>
+          </span>
+        </div>
+      </div>
+
+      <p class="payment-instructions">
+        <i class="fa-solid fa-circle-info"></i>
+        Send the selected amount to the account above, then fill in your payment proof below so our team can verify it.
+      </p>
+
+      <div class="proof-form">
+        <div class="form-group">
+          <label for="transactionId">Transaction ID</label>
+          <div class="input-wrap">
+            <i class="fa-solid fa-receipt"></i>
+            <input type="text" id="transactionId" name="transaction_id" placeholder="e.g. TXN123456789" required />
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="screenshotInput">Payment Screenshot</label>
+          <label class="upload-zone" id="uploadZone" for="screenshotInput">
+            <input type="file" id="screenshotInput" name="screenshot" accept="image/png,image/jpeg,image/webp" hidden />
+
+            <div class="upload-zone-empty" id="uploadZoneEmpty">
+              <i class="fa-solid fa-cloud-arrow-up"></i>
+              <span class="upload-zone-title">Click to upload screenshot</span>
+              <span class="upload-zone-hint">PNG, JPG or WEBP — max 5MB</span>
+            </div>
+
+            <div class="upload-zone-preview" id="uploadZonePreview" hidden>
+              <img id="uploadPreviewImg" alt="Payment screenshot preview" />
+              <div class="upload-preview-info">
+                <span id="uploadFileName">screenshot.png</span>
+                <button type="button" class="upload-remove-btn" id="uploadRemoveBtn" title="Remove screenshot" aria-label="Remove screenshot">
+                  <i class="fa-solid fa-trash"></i>
+                </button>
+              </div>
+            </div>
+          </label>
+        </div>
+      </div>
+
+      <div class="invest-step-actions">
+        <button type="button" class="btn btn-outline" id="planBackBtn">
+          <i class="fa-solid fa-arrow-left"></i>
+          <span>Back</span>
+        </button>
+        <button type="button" class="btn btn-primary btn-block" id="confirmInvestmentBtn">
+          <span class="btn-text">I've Sent the Payment</span>
+          <i class="fa-solid fa-circle-notch fa-spin btn-spinner"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- Step 3: Waiting for approval -->
+    <div class="invest-step" id="investStepSuccess" hidden>
+      <div class="invest-success">
+        <div class="invest-success-icon pending"><i class="fa-solid fa-hourglass-half"></i></div>
+        <h3>Waiting for Approval</h3>
+        <p>Your payment proof for <strong id="successAmountText">Rs 0</strong> has been submitted. Our team will verify it and approve your investment shortly — track the status anytime on your dashboard.</p>
+        <button type="button" class="btn btn-primary btn-block" id="investDoneBtn">Done</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== Bonus Spin Result ===== -->
+<div class="modal-overlay" id="bonusResultOverlay">
+  <div class="auth-modal bonus-result-modal" role="dialog" aria-modal="true" aria-labelledby="bonusResultTitle">
+    <button class="modal-close" id="bonusResultClose" aria-label="Close">
+      <i class="fa-solid fa-xmark"></i>
+    </button>
+
+    <div class="bonus-result-icon" id="bonusResultIcon"><i class="fa-solid fa-sack-dollar"></i></div>
+    <h2 id="bonusResultTitle">Congratulations!</h2>
+    <p class="bonus-result-lead" id="bonusResultLead">You won</p>
+    <div class="bonus-result-amount" id="bonusResultAmount">Rs 500</div>
+    <p class="bonus-result-note" id="bonusResultNote">Added to your Total Earning balance.</p>
+
+    <button type="button" class="btn btn-primary btn-block" id="bonusResultDoneBtn">Awesome!</button>
+  </div>
+</div>
+
+<!-- ===== Withdrawal Modal ===== -->
+<div class="modal-overlay" id="withdrawalOverlay">
+  <div class="auth-modal withdrawal-modal" role="dialog" aria-modal="true" aria-labelledby="withdrawalModalTitle">
+    <button class="modal-close" id="withdrawalCloseBtn" aria-label="Close">
+      <i class="fa-solid fa-xmark"></i>
+    </button>
+
+    <div class="auth-modal-header">
+      <span class="brand-mark"><i class="fa-solid fa-money-bill-transfer"></i></span>
+      <h2 id="withdrawalModalTitle">Request a Withdrawal</h2>
+      <p>Funds are sent to your Easypaisa or JazzCash account after admin approval.</p>
+    </div>
+
+    <div class="auth-alert" id="withdrawalAlert"></div>
+
+    <!-- Step 1: form -->
+    <div class="invest-step" id="withdrawStepForm">
+      <div class="payment-summary">
+        <span>Available to withdraw</span>
+        <strong id="withdrawAvailableText">Rs 0</strong>
+      </div>
+
+      <div class="form-group">
+        <label for="withdrawAmount">Amount (Rs)</label>
+        <div class="input-wrap">
+          <i class="fa-solid fa-money-bill"></i>
+          <input type="number" id="withdrawAmount" min="1" step="1" placeholder="e.g. 1000" required />
+        </div>
+      </div>
+
+      <div class="role-toggle" id="walletProviderToggle">
+        <button type="button" class="role-btn active" data-provider="easypaisa">
+          <i class="fa-solid fa-wallet"></i> Easypaisa
+        </button>
+        <button type="button" class="role-btn" data-provider="jazzcash">
+          <i class="fa-solid fa-wallet"></i> JazzCash
+        </button>
+      </div>
+
+      <div class="form-group">
+        <label for="withdrawAccountNumber">Account Number</label>
+        <div class="input-wrap">
+          <i class="fa-solid fa-phone"></i>
+          <input type="tel" id="withdrawAccountNumber" placeholder="03XXXXXXXXX" required minlength="7" />
+        </div>
+      </div>
+
+      <button type="button" class="btn btn-primary btn-block" id="withdrawSubmitBtn">
+        <span class="btn-text">Request Withdrawal</span>
+        <i class="fa-solid fa-circle-notch fa-spin btn-spinner"></i>
+      </button>
+    </div>
+
+    <!-- Step 2: Waiting for approval -->
+    <div class="invest-step" id="withdrawStepSuccess" hidden>
+      <div class="invest-success">
+        <div class="invest-success-icon pending"><i class="fa-solid fa-hourglass-half"></i></div>
+        <h3>Waiting for Approval</h3>
+        <p>Your withdrawal request for <strong id="withdrawSuccessAmount">Rs 0</strong> has been submitted. Our team will process it and send funds to your account shortly.</p>
+        <button type="button" class="btn btn-primary btn-block" id="withdrawDoneBtn">Done</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="js/main.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/investment.js"></script>
+<script src="js/withdrawal.js"></script>
+<script src="js/market.js"></script>
+<script src="js/bonus.js"></script>
+</body>
+</html>

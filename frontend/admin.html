@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Admin Panel — IncomePlus</title>
+<meta name="description" content="Review and approve investment requests for IncomePlus." />
+
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+
+<link rel="stylesheet" href="css/style.css" />
+<link rel="stylesheet" href="css/admin.css" />
+</head>
+<body>
+
+<div class="bg-ambient" aria-hidden="true">
+  <span class="orb orb-1"></span>
+  <span class="orb orb-2"></span>
+  <span class="orb orb-3"></span>
+  <div class="grid-overlay"></div>
+</div>
+
+<!-- ===== Login Gate ===== -->
+<div class="admin-gate" id="adminGate">
+  <div class="auth-modal admin-login-card">
+    <div class="auth-modal-header">
+      <span class="brand-mark"><i class="fa-solid fa-user-shield"></i></span>
+      <h2>Admin Sign In</h2>
+      <p>Manage investment and withdrawal requests for IncomePlus.</p>
+    </div>
+
+    <div class="auth-alert" id="adminLoginAlert"></div>
+
+    <form id="adminLoginForm">
+      <div class="form-group">
+        <label for="adminEmail">Email Address</label>
+        <div class="input-wrap">
+          <i class="fa-solid fa-envelope"></i>
+          <input type="email" id="adminEmail" placeholder="admin@example.com" required />
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="adminPassword">Password</label>
+        <div class="input-wrap">
+          <i class="fa-solid fa-lock"></i>
+          <input type="password" id="adminPassword" placeholder="••••••••" required minlength="8" />
+        </div>
+      </div>
+
+      <button type="submit" class="btn btn-primary btn-block" id="adminLoginBtn">
+        <span class="btn-text">Sign In</span>
+        <i class="fa-solid fa-circle-notch fa-spin btn-spinner"></i>
+      </button>
+    </form>
+
+    <p class="auth-switch"><a href="index.html" class="link-btn">&larr; Back to main site</a></p>
+  </div>
+</div>
+
+<!-- ===== Dashboard ===== -->
+<div class="admin-dashboard" id="adminDashboard" hidden>
+  <header class="admin-topbar">
+    <div class="container admin-topbar-inner">
+      <a href="index.html" class="brand">
+        <span class="brand-mark"><i class="fa-solid fa-shield-halved"></i></span>
+        <span class="brand-name">Income<span class="brand-accent">Plus</span></span>
+      </a>
+
+      <span class="admin-badge"><i class="fa-solid fa-user-shield"></i> <span>Admin Panel</span></span>
+
+      <div class="user-chip">
+        <span class="user-chip-avatar"><i class="fa-solid fa-user"></i></span>
+        <span class="user-chip-name" id="adminChipName">Admin</span>
+        <button class="user-chip-logout" id="adminLogoutBtn" title="Log out" aria-label="Log out">
+          <i class="fa-solid fa-arrow-right-from-bracket"></i>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main class="admin-main">
+    <div class="container">
+
+      <div class="type-tabs" id="typeTabs">
+        <button class="type-tab active" data-type="investments">
+          <i class="fa-solid fa-chart-line"></i> Investment Requests
+        </button>
+        <button class="type-tab" data-type="withdrawals">
+          <i class="fa-solid fa-money-bill-transfer"></i> Withdrawal Requests
+        </button>
+        <button class="type-tab" data-type="plans">
+          <i class="fa-solid fa-layer-group"></i> Investment Plans
+        </button>
+        <button class="type-tab" data-type="referrals">
+          <i class="fa-solid fa-user-group"></i> Referral Program
+        </button>
+      </div>
+
+      <!-- ===== Requests panel (Investments / Withdrawals) ===== -->
+      <div id="requestsPanel">
+        <div class="admin-stats">
+          <div class="admin-stat-card">
+            <span class="admin-stat-num" id="statPending">0</span>
+            <span class="admin-stat-label"><i class="fa-solid fa-clock"></i> Pending</span>
+          </div>
+          <div class="admin-stat-card">
+            <span class="admin-stat-num" id="statApproved">0</span>
+            <span class="admin-stat-label"><i class="fa-solid fa-circle-check"></i> Approved</span>
+          </div>
+          <div class="admin-stat-card">
+            <span class="admin-stat-num" id="statRejected">0</span>
+            <span class="admin-stat-label"><i class="fa-solid fa-circle-xmark"></i> Rejected</span>
+          </div>
+          <div class="admin-stat-card">
+            <span class="admin-stat-num" id="statTotal">0</span>
+            <span class="admin-stat-label"><i class="fa-solid fa-layer-group"></i> Total Requests</span>
+          </div>
+        </div>
+
+        <div class="admin-toolbar">
+          <div class="filter-tabs" id="filterTabs">
+            <button class="filter-tab active" data-status="">All</button>
+            <button class="filter-tab" data-status="pending">Pending</button>
+            <button class="filter-tab" data-status="approved">Approved</button>
+            <button class="filter-tab" data-status="rejected">Rejected</button>
+          </div>
+          <button class="btn btn-outline btn-sm" id="refreshBtn">
+            <i class="fa-solid fa-rotate"></i>
+            <span>Refresh</span>
+          </button>
+        </div>
+
+        <div class="auth-alert" id="adminAlert"></div>
+
+        <div class="request-grid" id="requestGrid"></div>
+
+        <div class="empty-state" id="emptyState" hidden>
+          <i class="fa-solid fa-inbox"></i>
+          <p>No investment requests found.</p>
+        </div>
+      </div>
+
+      <!-- ===== Plans panel ===== -->
+      <div id="plansPanel" hidden>
+        <div class="admin-toolbar">
+          <p class="plans-panel-hint">Control what every investor sees and earns — changes apply to new investments right away.</p>
+          <button class="btn btn-primary btn-sm" id="addPlanBtn">
+            <i class="fa-solid fa-plus"></i>
+            <span>Add New Plan</span>
+          </button>
+        </div>
+
+        <div class="auth-alert" id="plansAlert"></div>
+
+        <div class="plans-grid" id="plansGrid"></div>
+
+        <div class="empty-state" id="plansEmptyState" hidden>
+          <i class="fa-solid fa-layer-group"></i>
+          <p>No investment plans yet. Add your first one.</p>
+        </div>
+      </div>
+
+      <!-- ===== Referral Program panel ===== -->
+      <div id="referralsPanel" hidden>
+        <div class="referral-settings-card">
+          <div class="referral-settings-icon"><i class="fa-solid fa-percent"></i></div>
+          <div class="referral-settings-info">
+            <h3>Referral Commission Rate</h3>
+            <p>When an admin approves a referred user's investment, the referrer instantly earns this percentage of the investment amount.</p>
+          </div>
+        </div>
+
+        <div class="auth-alert" id="referralSettingsAlert"></div>
+
+        <form id="referralSettingsForm" class="referral-settings-form">
+          <div class="form-group">
+            <label for="referralCommissionPercent">Commission Rate (%)</label>
+            <div class="input-wrap">
+              <i class="fa-solid fa-percent"></i>
+              <input type="number" id="referralCommissionPercent" min="0" max="100" step="0.5" required />
+            </div>
+          </div>
+          <button type="submit" class="btn btn-primary" id="referralSettingsSubmitBtn">
+            <span class="btn-text">Save Rate</span>
+            <i class="fa-solid fa-circle-notch fa-spin btn-spinner"></i>
+          </button>
+        </form>
+      </div>
+
+    </div>
+  </main>
+</div>
+
+<!-- ===== Add / Edit Plan Modal ===== -->
+<div class="modal-overlay" id="planModalOverlay">
+  <div class="auth-modal" role="dialog" aria-modal="true" aria-labelledby="planModalTitle">
+    <button class="modal-close" id="planModalClose" aria-label="Close">
+      <i class="fa-solid fa-xmark"></i>
+    </button>
+
+    <div class="auth-modal-header">
+      <span class="brand-mark"><i class="fa-solid fa-layer-group"></i></span>
+      <h2 id="planModalTitle">Add Investment Plan</h2>
+      <p>Set the amount, monthly profit and how it's presented to investors.</p>
+    </div>
+
+    <div class="auth-alert" id="planFormAlert"></div>
+
+    <form id="planForm">
+      <div class="form-grid-2">
+        <div class="form-group">
+          <label for="planAmount">Investment Amount (Rs)</label>
+          <div class="input-wrap">
+            <i class="fa-solid fa-money-bill"></i>
+            <input type="number" id="planAmount" min="1" step="1" placeholder="e.g. 2000" required />
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="planMonthlyProfit">Monthly Profit (Rs)</label>
+          <div class="input-wrap">
+            <i class="fa-solid fa-arrow-trend-up"></i>
+            <input type="number" id="planMonthlyProfit" min="0" step="1" placeholder="e.g. 300" required />
+          </div>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="planBadgeLabel">Badge Label</label>
+        <div class="input-wrap">
+          <i class="fa-solid fa-tag"></i>
+          <input type="text" id="planBadgeLabel" maxlength="40" placeholder="e.g. Starter, Most Popular" required />
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="planNote">Short Note</label>
+        <div class="input-wrap">
+          <i class="fa-solid fa-quote-left"></i>
+          <input type="text" id="planNote" maxlength="160" placeholder="e.g. Perfect for beginners" required />
+        </div>
+      </div>
+
+      <div class="form-grid-2">
+        <div class="form-group">
+          <label for="planSortOrder">Display Order</label>
+          <div class="input-wrap">
+            <i class="fa-solid fa-arrow-up-short-wide"></i>
+            <input type="number" id="planSortOrder" min="0" step="1" placeholder="0" />
+          </div>
+        </div>
+        <div class="form-group plan-toggles">
+          <label class="checkbox-wrap">
+            <input type="checkbox" id="planFeatured" />
+            <span class="checkbox-box"></span>
+            <span>Featured (highlighted)</span>
+          </label>
+          <label class="checkbox-wrap" id="planActiveWrap" hidden>
+            <input type="checkbox" id="planActive" checked />
+            <span class="checkbox-box"></span>
+            <span>Active (visible to users)</span>
+          </label>
+        </div>
+      </div>
+
+      <button type="submit" class="btn btn-primary btn-block" id="planSubmitBtn">
+        <span class="btn-text">Save Plan</span>
+        <i class="fa-solid fa-circle-notch fa-spin btn-spinner"></i>
+      </button>
+    </form>
+  </div>
+</div>
+
+<!-- ===== Screenshot lightbox ===== -->
+<div class="lightbox-overlay" id="lightboxOverlay">
+  <button class="modal-close lightbox-close" id="lightboxClose" aria-label="Close">
+    <i class="fa-solid fa-xmark"></i>
+  </button>
+  <img id="lightboxImg" src="" alt="Payment screenshot" />
+</div>
+
+<script src="js/admin.js"></script>
+</body>
+</html>

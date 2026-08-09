@@ -1,0 +1,14 @@
+# Secrets — never commit these
+backend/.env
+
+# Python
+backend/venv/
+__pycache__/
+*.pyc
+
+# Uploaded user files (screenshots)
+backend/uploads/
+
+# OS / editor
+.DS_Store
+Thumbs.db

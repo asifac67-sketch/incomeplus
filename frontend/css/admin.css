@@ -1,0 +1,485 @@
+/* ============================================
+   Admin Login Gate
+============================================ */
+.admin-gate {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+
+.admin-login-card {
+  position: static;
+  transform: none;
+  opacity: 1;
+  width: 100%;
+  max-width: 420px;
+}
+
+/* ============================================
+   Admin Topbar
+============================================ */
+.admin-topbar {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  background: rgba(5, 7, 15, 0.75);
+  backdrop-filter: blur(16px) saturate(140%);
+  -webkit-backdrop-filter: blur(16px) saturate(140%);
+  border-bottom: 1px solid var(--border-soft);
+  height: 76px;
+  display: flex;
+  align-items: center;
+}
+
+.admin-topbar-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.admin-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  border-radius: var(--radius-pill);
+  background: rgba(0, 212, 255, 0.12);
+  color: var(--accent-2);
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+/* ============================================
+   Admin Main
+============================================ */
+.admin-main { padding: 32px 0 80px; }
+
+.type-tabs {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 22px;
+  flex-wrap: wrap;
+}
+
+.type-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 20px;
+  border-radius: var(--radius-md);
+  background: var(--bg-glass);
+  border: 1px solid var(--border-soft);
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  transition: background 0.2s, color 0.2s, border-color 0.2s;
+}
+
+.type-tab.active {
+  background: var(--gradient-primary);
+  border-color: transparent;
+  color: #fff;
+}
+
+.admin-stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  margin-bottom: 26px;
+}
+
+.admin-stat-card {
+  padding: 20px 22px;
+  border-radius: var(--radius-md);
+  background: var(--bg-glass);
+  border: 1px solid var(--border-soft);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.admin-stat-num {
+  font-family: var(--font-heading);
+  font-size: 1.8rem;
+  font-weight: 800;
+}
+
+.admin-stat-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+.admin-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 14px;
+  margin-bottom: 18px;
+}
+
+.filter-tabs {
+  display: flex;
+  gap: 6px;
+  padding: 4px;
+  border-radius: var(--radius-pill);
+  background: var(--bg-glass);
+  border: 1px solid var(--border-soft);
+}
+
+.filter-tab {
+  padding: 8px 16px;
+  border-radius: var(--radius-pill);
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  transition: background 0.2s, color 0.2s;
+}
+
+.filter-tab.active {
+  background: var(--gradient-primary);
+  color: #fff;
+}
+
+.btn-sm { padding: 9px 16px; font-size: 0.82rem; }
+
+/* ============================================
+   Request Grid + Cards
+============================================ */
+.request-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 18px;
+}
+
+.request-card {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 20px;
+  border-radius: var(--radius-lg);
+  background: var(--bg-glass);
+  border: 1px solid var(--border-soft);
+  transition: border-color 0.25s, transform 0.25s;
+}
+.request-card:hover { border-color: var(--border-strong); transform: translateY(-2px); }
+
+.request-card-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.request-user { display: flex; align-items: center; gap: 10px; min-width: 0; }
+
+.request-user-avatar {
+  flex-shrink: 0;
+  width: 38px; height: 38px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--gradient-primary);
+  color: #fff;
+  font-size: 0.9rem;
+}
+
+.request-user-name {
+  display: block;
+  font-size: 0.9rem;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.request-user-email {
+  display: block;
+  font-size: 0.76rem;
+  color: var(--text-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.request-card-body {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px 14px;
+  border-radius: var(--radius-sm);
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.request-detail {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  font-size: 0.82rem;
+}
+
+.request-detail span { color: var(--text-muted); flex-shrink: 0; }
+.request-detail strong { font-weight: 600; overflow-wrap: anywhere; text-align: right; }
+
+.screenshot-thumb {
+  position: relative;
+  display: block;
+  width: 100%;
+  height: 130px;
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  border: 1px solid var(--border-soft);
+}
+
+.screenshot-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s var(--ease);
+}
+
+.screenshot-thumb span {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  background: rgba(5, 7, 15, 0.55);
+  color: #fff;
+  font-size: 0.8rem;
+  font-weight: 600;
+  opacity: 0;
+  transition: opacity 0.25s;
+}
+
+.screenshot-thumb:hover img { transform: scale(1.06); }
+.screenshot-thumb:hover span { opacity: 1; }
+
+.request-card-actions { display: flex; gap: 10px; }
+.request-card-actions .btn { flex: 1; }
+
+.request-reviewed-note {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  text-align: center;
+}
+
+/* ============================================
+   Plans Management
+============================================ */
+.plans-panel-hint {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  max-width: 480px;
+}
+
+.plans-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 18px;
+}
+
+.admin-plan-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 22px;
+  border-radius: var(--radius-lg);
+  background: var(--bg-glass);
+  border: 1px solid var(--border-soft);
+  transition: border-color 0.25s, transform 0.25s var(--ease);
+}
+.admin-plan-card:hover { border-color: var(--border-strong); transform: translateY(-3px); }
+.admin-plan-card.inactive { opacity: 0.55; }
+
+.admin-plan-card-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.admin-plan-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  padding: 4px 10px;
+  border-radius: var(--radius-pill);
+  background: var(--bg-glass);
+  color: var(--accent-2);
+}
+.admin-plan-badge.featured { background: var(--gradient-warm); color: #fff; }
+.admin-plan-badge i { font-size: 0.68rem; }
+
+.admin-plan-status {
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  padding: 3px 9px;
+  border-radius: var(--radius-pill);
+}
+.admin-plan-status.active { background: rgba(46, 204, 113, 0.15); color: #6bf0a0; }
+.admin-plan-status.inactive { background: rgba(255, 92, 122, 0.15); color: var(--accent-danger); }
+
+.admin-plan-amount {
+  font-family: var(--font-heading);
+  font-size: 1.6rem;
+  font-weight: 800;
+}
+
+.admin-plan-profit {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.86rem;
+  color: #6bf0a0;
+  font-weight: 600;
+}
+.admin-plan-profit em { font-style: normal; color: var(--text-muted); font-weight: 500; font-size: 0.8rem; }
+
+.admin-plan-note {
+  font-size: 0.82rem;
+  color: var(--text-secondary);
+}
+
+.admin-plan-actions { display: flex; gap: 8px; margin-top: auto; }
+.admin-plan-actions .btn { flex: 1; padding: 8px 10px; font-size: 0.78rem; }
+
+/* Plan form modal extras */
+.plan-toggles {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 10px;
+}
+
+/* ============================================
+   Referral Program
+============================================ */
+.referral-settings-card {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  padding: 24px 26px;
+  border-radius: var(--radius-lg);
+  background: linear-gradient(120deg, rgba(108, 92, 231, 0.16), rgba(0, 212, 255, 0.08));
+  border: 1px solid var(--border-strong);
+  margin-bottom: 20px;
+}
+
+.referral-settings-icon {
+  flex-shrink: 0;
+  width: 52px; height: 52px;
+  display: grid;
+  place-items: center;
+  border-radius: 16px;
+  background: linear-gradient(135deg, var(--accent-1), var(--accent-2));
+  color: #fff;
+  font-size: 1.3rem;
+}
+
+.referral-settings-info h3 {
+  font-family: var(--font-heading);
+  font-size: 1.05rem;
+  margin-bottom: 6px;
+}
+.referral-settings-info p {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  max-width: 560px;
+}
+
+.referral-settings-form {
+  display: flex;
+  align-items: flex-end;
+  gap: 14px;
+  max-width: 320px;
+}
+.referral-settings-form .form-group { flex: 1; margin-bottom: 0; }
+.referral-settings-form .btn { flex-shrink: 0; }
+
+/* ============================================
+   Empty state
+============================================ */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 60px 20px;
+  color: var(--text-muted);
+}
+.empty-state i { font-size: 2.4rem; }
+
+/* ============================================
+   Screenshot Lightbox
+============================================ */
+.lightbox-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px;
+  background: rgba(5, 7, 15, 0.9);
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.3s var(--ease), visibility 0.3s var(--ease);
+}
+
+.lightbox-overlay.open { opacity: 1; visibility: visible; }
+
+.lightbox-overlay img {
+  max-width: 100%;
+  max-height: 90vh;
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-lift);
+}
+
+.lightbox-close {
+  position: fixed;
+  top: 24px; right: 24px;
+  background: var(--bg-glass);
+}
+
+/* ============================================
+   Responsive
+============================================ */
+@media (max-width: 860px) {
+  .admin-stats { grid-template-columns: repeat(2, 1fr); }
+  .plans-grid { grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); }
+}
+
+@media (max-width: 640px) {
+  .admin-badge span { display: none; }
+  .admin-topbar-inner { gap: 10px; }
+  .request-grid { grid-template-columns: 1fr; }
+  .plans-grid { grid-template-columns: 1fr; }
+  .admin-toolbar { flex-direction: column; align-items: stretch; }
+  .filter-tabs { justify-content: space-between; }
+  .type-tab { padding: 10px 14px; font-size: 0.8rem; }
+  .referral-settings-card { flex-direction: column; text-align: center; }
+  .referral-settings-form { flex-direction: column; align-items: stretch; max-width: none; }
+  .referral-settings-form .btn { width: 100%; }
+  .admin-plan-actions { flex-wrap: wrap; }
+}
+
+@media (max-width: 420px) {
+  .user-chip-name { max-width: 60px; }
+  .admin-topbar-inner .brand-name { font-size: 1rem; }
+}

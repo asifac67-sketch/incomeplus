@@ -1,0 +1,38 @@
+databases:
+  - name: incomeplus-db
+    plan: free
+    databaseName: incomeplus
+    user: incomeplus
+
+services:
+  - type: web
+    name: incomeplus-api
+    env: python
+    plan: free
+    rootDir: backend
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: incomeplus-db
+          property: connectionString
+      - key: JWT_SECRET
+        generateValue: true
+      - key: JWT_ALGORITHM
+        value: HS256
+      - key: ACCESS_TOKEN_EXPIRE_MINUTES
+        value: "60"
+      - key: REMEMBER_ME_EXPIRE_DAYS
+        value: "30"
+      - key: ADMIN_SIGNUP_CODE
+        generateValue: true
+      - key: CORS_ORIGINS
+        value: "*"
+
+  - type: web
+    name: incomeplus-frontend
+    env: static
+    rootDir: frontend
+    buildCommand: ""
+    staticPublishPath: .
