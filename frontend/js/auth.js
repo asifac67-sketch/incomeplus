@@ -19,10 +19,6 @@ document.addEventListener("DOMContentLoaded", () => {
   const forms = document.querySelectorAll(".auth-form");
   const switchButtons = document.querySelectorAll("[data-switch]");
 
-  const roleToggle = document.getElementById("roleToggle");
-  const roleButtons = document.querySelectorAll(".role-btn");
-  const adminCodeGroup = document.getElementById("adminCodeGroup");
-
   const authAlert = document.getElementById("authAlert");
   const modalTitle = document.getElementById("authModalTitle");
   const modalSubtitle = document.getElementById("authModalSubtitle");
@@ -45,7 +41,9 @@ document.addEventListener("DOMContentLoaded", () => {
   const referredByNote = document.getElementById("referredByNote");
   const referralCodeFromUrl = new URLSearchParams(window.location.search).get("ref");
 
-  let currentRole = "user";
+  // Public site is user-only — admin sign-in lives on its own separate,
+  // unlinked page (admin.html) so regular visitors never see an admin option.
+  const currentRole = "user";
 
   // ---------- Modal open/close ----------
   function openModal(tab = "login") {
@@ -95,16 +93,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
   switchButtons.forEach((btn) => {
     btn.addEventListener("click", () => setActiveTab(btn.dataset.switch));
-  });
-
-  // ---------- Role toggle (User / Admin) ----------
-  roleButtons.forEach((btn) => {
-    btn.addEventListener("click", () => {
-      roleButtons.forEach((b) => b.classList.remove("active"));
-      btn.classList.add("active");
-      currentRole = btn.dataset.role;
-      adminCodeGroup.hidden = currentRole !== "admin";
-    });
   });
 
   // ---------- Password visibility ----------
@@ -248,7 +236,6 @@ document.addEventListener("DOMContentLoaded", () => {
     const confirmPassword = document.getElementById("signupConfirmPassword").value;
     const phoneNumber = document.getElementById("signupPhone").value.trim();
     const country = document.getElementById("signupCountry").value;
-    const adminCode = document.getElementById("adminCode").value;
 
     if (password !== confirmPassword) {
       showAlert("Passwords do not match.");
@@ -260,10 +247,6 @@ document.addEventListener("DOMContentLoaded", () => {
     }
     if (phoneNumber.length < 7) {
       showAlert("Please enter a valid mobile number.");
-      return;
-    }
-    if (currentRole === "admin" && !adminCode) {
-      showAlert("Please enter the admin registration code.");
       return;
     }
 
@@ -282,7 +265,7 @@ document.addEventListener("DOMContentLoaded", () => {
           phone_number: `+92${phoneNumber}`,
           country,
           role: currentRole,
-          admin_code: currentRole === "admin" ? adminCode : null,
+          admin_code: null,
           referral_code: referralCodeFromUrl || null,
         }),
       });
