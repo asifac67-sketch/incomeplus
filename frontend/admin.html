@@ -28,18 +28,13 @@
   <div class="auth-modal admin-login-card">
     <div class="auth-modal-header">
       <span class="brand-mark"><i class="fa-solid fa-user-shield"></i></span>
-      <h2 id="adminGateTitle">Admin Sign In</h2>
-      <p id="adminGateSubtitle">Manage investment and withdrawal requests for IncomePlus.</p>
-    </div>
-
-    <div class="auth-tabs">
-      <button class="auth-tab active" data-admin-tab="login">Sign In</button>
-      <button class="auth-tab" data-admin-tab="signup">Create Admin</button>
+      <h2>Admin Sign In</h2>
+      <p>Manage investment and withdrawal requests for IncomePlus.</p>
     </div>
 
     <div class="auth-alert" id="adminLoginAlert"></div>
 
-    <form id="adminLoginForm" class="auth-form active">
+    <form id="adminLoginForm">
       <div class="form-group">
         <label for="adminEmail">Email Address</label>
         <div class="input-wrap">
@@ -58,64 +53,6 @@
 
       <button type="submit" class="btn btn-primary btn-block" id="adminLoginBtn">
         <span class="btn-text">Sign In</span>
-        <i class="fa-solid fa-circle-notch fa-spin btn-spinner"></i>
-      </button>
-    </form>
-
-    <form id="adminSignupForm" class="auth-form">
-      <div class="form-group">
-        <label for="adminSignupName">Full Name</label>
-        <div class="input-wrap">
-          <i class="fa-solid fa-id-card"></i>
-          <input type="text" id="adminSignupName" placeholder="Your full name" required minlength="2" />
-        </div>
-      </div>
-
-      <div class="form-group">
-        <label for="adminSignupEmail">Email Address</label>
-        <div class="input-wrap">
-          <i class="fa-solid fa-envelope"></i>
-          <input type="email" id="adminSignupEmail" placeholder="admin@example.com" required />
-        </div>
-      </div>
-
-      <div class="form-grid-2">
-        <div class="form-group">
-          <label for="adminSignupPassword">Password</label>
-          <div class="input-wrap">
-            <i class="fa-solid fa-lock"></i>
-            <input type="password" id="adminSignupPassword" placeholder="Min. 8 characters" required minlength="8" />
-          </div>
-        </div>
-
-        <div class="form-group">
-          <label for="adminSignupConfirmPassword">Confirm Password</label>
-          <div class="input-wrap">
-            <i class="fa-solid fa-lock"></i>
-            <input type="password" id="adminSignupConfirmPassword" placeholder="Re-enter password" required minlength="8" />
-          </div>
-        </div>
-      </div>
-
-      <div class="form-group">
-        <label for="adminSignupPhone">Mobile Number</label>
-        <div class="input-wrap phone-input-wrap">
-          <i class="fa-solid fa-phone"></i>
-          <span class="phone-prefix">+92</span>
-          <input type="tel" id="adminSignupPhone" placeholder="3XX XXXXXXX" required minlength="7" inputmode="numeric" />
-        </div>
-      </div>
-
-      <div class="form-group">
-        <label for="adminSignupCode">Admin Registration Code</label>
-        <div class="input-wrap">
-          <i class="fa-solid fa-key"></i>
-          <input type="password" id="adminSignupCode" placeholder="Provided by super-admin" required />
-        </div>
-      </div>
-
-      <button type="submit" class="btn btn-primary btn-block" id="adminSignupBtn">
-        <span class="btn-text">Create Admin Account</span>
         <i class="fa-solid fa-circle-notch fa-spin btn-spinner"></i>
       </button>
     </form>

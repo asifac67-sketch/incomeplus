@@ -13,12 +13,6 @@ document.addEventListener("DOMContentLoaded", () => {
   const adminLoginAlert = document.getElementById("adminLoginAlert");
   const adminLoginBtn = document.getElementById("adminLoginBtn");
 
-  const adminGateTabs = document.querySelectorAll("[data-admin-tab]");
-  const adminGateTitle = document.getElementById("adminGateTitle");
-  const adminGateSubtitle = document.getElementById("adminGateSubtitle");
-  const adminSignupForm = document.getElementById("adminSignupForm");
-  const adminSignupBtn = document.getElementById("adminSignupBtn");
-
   const adminChipName = document.getElementById("adminChipName");
   const adminLogoutBtn = document.getElementById("adminLogoutBtn");
 
@@ -134,92 +128,6 @@ document.addEventListener("DOMContentLoaded", () => {
     adminAlert.textContent = "";
     adminAlert.className = "auth-alert";
   }
-
-  // ---------- Gate tabs (Sign In / Create Admin) ----------
-  function setAdminGateTab(tabName) {
-    adminGateTabs.forEach((t) => t.classList.toggle("active", t.dataset.adminTab === tabName));
-    adminLoginForm.classList.toggle("active", tabName === "login");
-    adminSignupForm.classList.toggle("active", tabName === "signup");
-
-    if (tabName === "signup") {
-      adminGateTitle.textContent = "Create Admin Account";
-      adminGateSubtitle.textContent = "Requires the admin registration code.";
-    } else {
-      adminGateTitle.textContent = "Admin Sign In";
-      adminGateSubtitle.textContent = "Manage investment and withdrawal requests for IncomePlus.";
-    }
-
-    adminLoginAlert.className = "auth-alert";
-    adminLoginAlert.textContent = "";
-  }
-
-  adminGateTabs.forEach((tab) => {
-    tab.addEventListener("click", () => setAdminGateTab(tab.dataset.adminTab));
-  });
-
-  // ---------- Create Admin Account ----------
-  adminSignupForm?.addEventListener("submit", async (e) => {
-    e.preventDefault();
-    adminLoginAlert.className = "auth-alert";
-
-    const fullName = document.getElementById("adminSignupName").value.trim();
-    const email = document.getElementById("adminSignupEmail").value.trim();
-    const password = document.getElementById("adminSignupPassword").value;
-    const confirmPassword = document.getElementById("adminSignupConfirmPassword").value;
-    const phoneNumber = document.getElementById("adminSignupPhone").value.trim();
-    const adminCode = document.getElementById("adminSignupCode").value;
-
-    if (password !== confirmPassword) {
-      adminLoginAlert.textContent = "Passwords do not match.";
-      adminLoginAlert.className = "auth-alert show error";
-      return;
-    }
-    if (phoneNumber.length < 7) {
-      adminLoginAlert.textContent = "Please enter a valid mobile number.";
-      adminLoginAlert.className = "auth-alert show error";
-      return;
-    }
-
-    adminSignupBtn.classList.add("is-loading");
-    adminSignupBtn.disabled = true;
-
-    try {
-      const res = await fetch(`${API_BASE_URL}/api/auth/signup`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          full_name: fullName,
-          email,
-          password,
-          confirm_password: confirmPassword,
-          phone_number: `+92${phoneNumber}`,
-          country: "Pakistan",
-          role: "admin",
-          admin_code: adminCode,
-          referral_code: null,
-        }),
-      });
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        adminLoginAlert.textContent = formatApiError(data);
-        adminLoginAlert.className = "auth-alert show error";
-        return;
-      }
-
-      adminSignupForm.reset();
-      setAdminGateTab("login");
-      adminLoginAlert.textContent = "Admin account created. You can now sign in.";
-      adminLoginAlert.className = "auth-alert show success";
-    } catch (err) {
-      adminLoginAlert.textContent = "Could not reach the server. Is the FastAPI backend running?";
-      adminLoginAlert.className = "auth-alert show error";
-    } finally {
-      adminSignupBtn.classList.remove("is-loading");
-      adminSignupBtn.disabled = false;
-    }
-  });
 
   // ---------- Login ----------
   adminLoginForm?.addEventListener("submit", async (e) => {
