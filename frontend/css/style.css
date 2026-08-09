@@ -214,6 +214,27 @@ ul { list-style: none; }
   gap: 24px;
 }
 
+.back-nav-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  border-radius: var(--radius-pill);
+  background: var(--bg-glass);
+  border: 1px solid var(--border-soft);
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+  font-weight: 600;
+  transition: background 0.2s, color 0.2s, border-color 0.2s, transform 0.2s;
+}
+.back-nav-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: var(--border-strong);
+  color: var(--text-primary);
+  transform: translateX(-2px);
+}
+.back-nav-btn i { font-size: 0.8rem; }
+
 .brand {
   display: flex;
   align-items: center;

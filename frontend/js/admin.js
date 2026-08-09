@@ -206,6 +206,10 @@ document.addEventListener("DOMContentLoaded", () => {
     showGate();
   });
 
+  document.getElementById("backNavBtn")?.addEventListener("click", () => {
+    window.history.back();
+  });
+
   function formatApiError(data) {
     if (!data) return "Something went wrong. Please try again.";
     if (typeof data.detail === "string") return data.detail;

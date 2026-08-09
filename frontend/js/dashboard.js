@@ -119,6 +119,13 @@ document.addEventListener("DOMContentLoaded", () => {
   menuToggle?.addEventListener("click", openSidebar);
   sidebarBackdrop?.addEventListener("click", closeSidebar);
 
+  document.getElementById("backNavBtn")?.addEventListener("click", () => {
+    window.history.back();
+  });
+  document.getElementById("dashSidebarBackBtn")?.addEventListener("click", () => {
+    window.history.back();
+  });
+
   // ---------- Password visibility (Security form) ----------
   document.querySelectorAll(".toggle-password").forEach((btn) => {
     btn.addEventListener("click", () => {

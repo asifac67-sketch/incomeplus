@@ -37,6 +37,8 @@
 
 .dash-brand { padding: 4px 8px 20px; }
 
+.dash-back-btn { width: 100%; justify-content: center; margin-bottom: 14px; }
+
 .dash-profile {
   position: relative;
   display: flex;

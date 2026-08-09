@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=1280" />
 <title>IncomePlus — Grow Your Income, Securely</title>
 <meta name="description" content="IncomePlus — a secure, modern investment platform for users and admins." />
+<link rel="icon" type="image/svg+xml" href="favicon.svg" />
 
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -31,6 +32,11 @@
       <span class="brand-name">Income<span class="brand-accent">Plus</span></span>
     </a>
 
+    <button type="button" class="back-nav-btn" id="backNavBtn" title="Go back" aria-label="Go back">
+      <i class="fa-solid fa-arrow-left"></i>
+      <span>Back</span>
+    </button>
+
     <nav class="main-nav" id="mainNav">
       <a href="#home" class="nav-link active">Home</a>
       <a href="#about" class="nav-link">About</a>
@@ -49,9 +55,6 @@
       <div class="user-chip" id="userChip" hidden>
         <span class="user-chip-avatar"><i class="fa-solid fa-user"></i></span>
         <span class="user-chip-name" id="userChipName">User</span>
-        <a href="dashboard.html" class="user-chip-dashboard" title="Go to dashboard" aria-label="Go to dashboard">
-          <i class="fa-solid fa-gauge-high"></i>
-        </a>
         <button class="user-chip-logout" id="logoutBtn" title="Log out" aria-label="Log out">
           <i class="fa-solid fa-arrow-right-from-bracket"></i>
         </button>

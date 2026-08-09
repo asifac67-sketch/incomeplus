@@ -212,6 +212,10 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
+  document.getElementById("backNavBtn")?.addEventListener("click", () => {
+    window.history.back();
+  });
+
   logoutBtn?.addEventListener("click", () => {
     clearSession();
     showLoggedOutUI();
