@@ -3,6 +3,7 @@ from datetime import datetime
 from typing import List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
+from sqlalchemy import or_
 from sqlalchemy.orm import Session, joinedload
 
 from .. import models, schemas
@@ -267,3 +268,186 @@ def update_referral_settings(
     db.commit()
     db.refresh(settings)
     return settings
+
+
+# ---------- Users (full history) ----------
+
+@router.get("/users", response_model=List[schemas.UserOut])
+def list_users(
+    search: Optional[str] = Query(default=None),
+    _admin: models.User = Depends(get_current_admin),
+    db: Session = Depends(get_db),
+):
+    query = db.query(models.User)
+    if search:
+        like = f"%{search.strip()}%"
+        query = query.filter(or_(models.User.full_name.ilike(like), models.User.email.ilike(like)))
+    return query.order_by(models.User.created_at.desc()).limit(100).all()
+
+
+@router.get("/users/{user_id}", response_model=schemas.UserDetailOut)
+def get_user_detail(
+    user_id: str,
+    _admin: models.User = Depends(get_current_admin),
+    db: Session = Depends(get_db),
+):
+    try:
+        parsed_id = uuid.UUID(user_id)
+    except ValueError:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid user ID.")
+
+    user = db.query(models.User).filter(models.User.id == parsed_id).first()
+    if not user:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found.")
+
+    investments = (
+        db.query(models.InvestmentRequest)
+        .filter(models.InvestmentRequest.user_id == parsed_id)
+        .order_by(models.InvestmentRequest.created_at.desc())
+        .all()
+    )
+    withdrawals = (
+        db.query(models.WithdrawalRequest)
+        .filter(models.WithdrawalRequest.user_id == parsed_id)
+        .order_by(models.WithdrawalRequest.created_at.desc())
+        .all()
+    )
+    spins = (
+        db.query(models.DailyBonusSpin)
+        .filter(models.DailyBonusSpin.user_id == parsed_id)
+        .order_by(models.DailyBonusSpin.spun_at.desc())
+        .all()
+    )
+    referred_count = db.query(models.User).filter(models.User.referred_by_id == parsed_id).count()
+
+    return schemas.UserDetailOut(
+        user=user,
+        investments=investments,
+        withdrawals=withdrawals,
+        spins=spins,
+        referred_count=referred_count,
+    )
+
+
+# ---------- Daily Bonus Spin Control ----------
+
+@router.get("/spin-control/users", response_model=List[schemas.SpinUserOut])
+def search_users_for_spin_control(
+    search: Optional[str] = Query(default=None),
+    _admin: models.User = Depends(get_current_admin),
+    db: Session = Depends(get_db),
+):
+    query = db.query(models.User).filter(models.User.role == models.UserRole.user)
+    if search:
+        like = f"%{search.strip()}%"
+        query = query.filter(or_(models.User.full_name.ilike(like), models.User.email.ilike(like)))
+
+    users = query.order_by(models.User.full_name).limit(25).all()
+
+    forced_by_user = {
+        f.user_id: float(f.amount)
+        for f in db.query(models.ForcedBonusSpin).filter(
+            models.ForcedBonusSpin.user_id.in_([u.id for u in users])
+        )
+    }
+
+    results = []
+    for user in users:
+        last_spin = (
+            db.query(models.DailyBonusSpin)
+            .filter(models.DailyBonusSpin.user_id == user.id)
+            .order_by(models.DailyBonusSpin.spun_at.desc())
+            .first()
+        )
+        results.append(
+            schemas.SpinUserOut(
+                id=user.id,
+                full_name=user.full_name,
+                email=user.email,
+                forced_amount=forced_by_user.get(user.id),
+                last_spin_amount=float(last_spin.amount) if last_spin else None,
+            )
+        )
+    return results
+
+
+@router.put("/spin-control/all-force")
+def set_forced_spin_for_all(
+    payload: schemas.ForceSpinRequest,
+    _admin: models.User = Depends(get_current_admin),
+    db: Session = Depends(get_db),
+):
+    user_ids = [u.id for u in db.query(models.User.id).filter(models.User.role == models.UserRole.user).all()]
+    if not user_ids:
+        return {"updated_count": 0}
+
+    existing = {
+        f.user_id: f
+        for f in db.query(models.ForcedBonusSpin).filter(models.ForcedBonusSpin.user_id.in_(user_ids))
+    }
+
+    for user_id in user_ids:
+        if user_id in existing:
+            existing[user_id].amount = payload.amount
+        else:
+            db.add(models.ForcedBonusSpin(user_id=user_id, amount=payload.amount))
+
+    db.commit()
+    return {"updated_count": len(user_ids)}
+
+
+@router.put("/spin-control/users/{user_id}/force", response_model=schemas.SpinUserOut)
+def set_forced_spin(
+    user_id: str,
+    payload: schemas.ForceSpinRequest,
+    _admin: models.User = Depends(get_current_admin),
+    db: Session = Depends(get_db),
+):
+    try:
+        parsed_id = uuid.UUID(user_id)
+    except ValueError:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid user ID.")
+
+    user = db.query(models.User).filter(models.User.id == parsed_id).first()
+    if not user:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found.")
+
+    forced = db.query(models.ForcedBonusSpin).filter(models.ForcedBonusSpin.user_id == parsed_id).first()
+    if forced:
+        forced.amount = payload.amount
+    else:
+        forced = models.ForcedBonusSpin(user_id=parsed_id, amount=payload.amount)
+        db.add(forced)
+
+    db.commit()
+
+    last_spin = (
+        db.query(models.DailyBonusSpin)
+        .filter(models.DailyBonusSpin.user_id == parsed_id)
+        .order_by(models.DailyBonusSpin.spun_at.desc())
+        .first()
+    )
+    return schemas.SpinUserOut(
+        id=user.id,
+        full_name=user.full_name,
+        email=user.email,
+        forced_amount=float(payload.amount),
+        last_spin_amount=float(last_spin.amount) if last_spin else None,
+    )
+
+
+@router.delete("/spin-control/users/{user_id}/force", status_code=status.HTTP_204_NO_CONTENT)
+def clear_forced_spin(
+    user_id: str,
+    _admin: models.User = Depends(get_current_admin),
+    db: Session = Depends(get_db),
+):
+    try:
+        parsed_id = uuid.UUID(user_id)
+    except ValueError:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid user ID.")
+
+    forced = db.query(models.ForcedBonusSpin).filter(models.ForcedBonusSpin.user_id == parsed_id).first()
+    if forced:
+        db.delete(forced)
+        db.commit()

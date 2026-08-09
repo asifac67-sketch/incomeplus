@@ -19,6 +19,8 @@ document.addEventListener("DOMContentLoaded", () => {
   const resultLead = document.getElementById("bonusResultLead");
   const resultAmount = document.getElementById("bonusResultAmount");
   const resultNote = document.getElementById("bonusResultNote");
+  const resultWithdrawBtn = document.getElementById("bonusResultWithdrawBtn");
+  const resultWithdrawText = document.getElementById("bonusResultWithdrawText");
 
   if (!wheel) return;
 
@@ -145,7 +147,19 @@ document.addEventListener("DOMContentLoaded", () => {
           ? "Added to your Total Earning balance."
           : "No bonus this time — better luck on your next spin!";
         resultIcon.classList.toggle("no-win", !won);
+
+        if (won) {
+          resultWithdrawText.textContent = `Withdraw Rs ${data.amount}`;
+          resultWithdrawBtn.hidden = false;
+        } else {
+          resultWithdrawBtn.hidden = true;
+        }
+
         openResultModal();
+        if (won) {
+          launchConfetti();
+          playCongratsSound();
+        }
         window.RT?.refreshUserUI?.();
         refreshBonusState();
         spinBtn.classList.remove("is-loading");
@@ -177,6 +191,61 @@ document.addEventListener("DOMContentLoaded", () => {
     wheel.addEventListener("transitionend", handleEnd);
   }
 
+  // ---------- Win celebration: confetti + chime ----------
+  const CONFETTI_COLORS = ["#6c5ce7", "#00d4ff", "#ff6ec7", "#2ecc71", "#ffb454"];
+
+  function launchConfetti() {
+    const container = document.getElementById("confettiContainer");
+    if (!container) return;
+
+    for (let i = 0; i < 120; i++) {
+      const piece = document.createElement("span");
+      piece.className = "confetti-piece";
+      piece.style.background = CONFETTI_COLORS[Math.floor(Math.random() * CONFETTI_COLORS.length)];
+      piece.style.left = `${Math.random() * 100}%`;
+      piece.style.borderRadius = Math.random() > 0.5 ? "50%" : "2px";
+      piece.style.setProperty("--drift", `${(Math.random() - 0.5) * 240}px`);
+      piece.style.setProperty("--spin", `${360 * (2 + Math.random() * 3)}deg`);
+
+      const duration = 2.6 + Math.random() * 1.6;
+      piece.style.animationDuration = `${duration}s`;
+      piece.style.animationDelay = `${Math.random() * 0.4}s`;
+
+      container.appendChild(piece);
+      setTimeout(() => piece.remove(), (duration + 1) * 1000);
+    }
+  }
+
+  function playCongratsSound() {
+    try {
+      const AudioCtx = window.AudioContext || window.webkitAudioContext;
+      if (!AudioCtx) return;
+      const ctx = new AudioCtx();
+      const notes = [523.25, 659.25, 783.99, 1046.5]; // ascending C-E-G-C chime
+
+      notes.forEach((freq, i) => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = "triangle";
+        osc.frequency.value = freq;
+
+        const startTime = ctx.currentTime + i * 0.11;
+        gain.gain.setValueAtTime(0, startTime);
+        gain.gain.linearRampToValueAtTime(0.25, startTime + 0.02);
+        gain.gain.exponentialRampToValueAtTime(0.001, startTime + 0.35);
+
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start(startTime);
+        osc.stop(startTime + 0.4);
+      });
+
+      setTimeout(() => ctx.close(), 1200);
+    } catch (err) {
+      // Audio blocked/unavailable — the confetti still shows.
+    }
+  }
+
   // ---------- Result modal ----------
   function openResultModal() {
     resultOverlay.classList.add("open");
@@ -190,6 +259,10 @@ document.addEventListener("DOMContentLoaded", () => {
   resultDoneBtn?.addEventListener("click", closeResultModal);
   resultOverlay?.addEventListener("click", (e) => {
     if (e.target === resultOverlay) closeResultModal();
+  });
+  resultWithdrawBtn?.addEventListener("click", () => {
+    closeResultModal();
+    window.RT?.openWithdrawalModal?.();
   });
 
   refreshBonusState();

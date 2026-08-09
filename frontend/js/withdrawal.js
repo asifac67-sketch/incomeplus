@@ -22,6 +22,11 @@ document.addEventListener("DOMContentLoaded", () => {
   const withdrawalsHistory = document.getElementById("withdrawalsHistory");
   const withdrawalList = document.getElementById("withdrawalList");
 
+  const investRequiredOverlay = document.getElementById("investRequiredOverlay");
+  const investRequiredClose = document.getElementById("investRequiredClose");
+  const investRequiredLaterBtn = document.getElementById("investRequiredLaterBtn");
+  const investRequiredCta = document.getElementById("investRequiredCta");
+
   if (!overlay) return;
 
   let selectedProvider = "easypaisa";
@@ -65,6 +70,22 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
+    try {
+      const gateRes = await fetch(`${API_BASE_URL}/api/withdrawals/eligibility`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (gateRes.ok) {
+        const gateData = await gateRes.json();
+        if (gateData.gated) {
+          openInvestRequiredModal();
+          return;
+        }
+      }
+    } catch (err) {
+      // If the check itself fails, fall through to the form — the
+      // submit-time gate on the backend still protects against this case.
+    }
+
     resetModal();
     overlay.classList.add("open");
     document.body.style.overflow = "hidden";
@@ -87,6 +108,26 @@ document.addEventListener("DOMContentLoaded", () => {
     overlay.classList.remove("open");
     document.body.style.overflow = "";
   }
+
+  // ---------- Investment-required gate (big bonus winners) ----------
+  function openInvestRequiredModal() {
+    investRequiredOverlay?.classList.add("open");
+    document.body.style.overflow = "hidden";
+  }
+  function closeInvestRequiredModal() {
+    investRequiredOverlay?.classList.remove("open");
+    document.body.style.overflow = "";
+  }
+
+  investRequiredClose?.addEventListener("click", closeInvestRequiredModal);
+  investRequiredLaterBtn?.addEventListener("click", closeInvestRequiredModal);
+  investRequiredOverlay?.addEventListener("click", (e) => {
+    if (e.target === investRequiredOverlay) closeInvestRequiredModal();
+  });
+  investRequiredCta?.addEventListener("click", () => {
+    closeInvestRequiredModal();
+    window.RT?.openInvestmentModal?.();
+  });
 
   withdrawCardBtn?.addEventListener("click", openWithdrawalModal);
   closeBtn?.addEventListener("click", closeWithdrawalModal);
@@ -149,6 +190,11 @@ document.addEventListener("DOMContentLoaded", () => {
       const data = await res.json();
 
       if (!res.ok) {
+        if (data.detail === "BONUS_INVESTMENT_REQUIRED") {
+          closeWithdrawalModal();
+          openInvestRequiredModal();
+          return;
+        }
         showAlert(formatApiError(data));
         return;
       }

@@ -101,6 +101,20 @@ class DailyBonusSpin(Base):
     user = relationship("User", back_populates="bonus_spins")
 
 
+class ForcedBonusSpin(Base):
+    """Admin-set outcome for a user's next daily-bonus spin — consumed (deleted)
+    the moment that spin happens."""
+
+    __tablename__ = "forced_bonus_spins"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False, unique=True, index=True)
+    amount = Column(Numeric(12, 2), nullable=False)
+    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+
+    user = relationship("User")
+
+
 class ReferralSettings(Base):
     __tablename__ = "referral_settings"
 

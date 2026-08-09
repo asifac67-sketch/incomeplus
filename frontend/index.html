@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="viewport" content="width=1280" />
 <title>IncomePlus — Grow Your Income, Securely</title>
 <meta name="description" content="IncomePlus — a secure, modern investment platform for users and admins." />
 
@@ -33,7 +33,6 @@
 
     <nav class="main-nav" id="mainNav">
       <a href="#home" class="nav-link active">Home</a>
-      <a href="#features" class="nav-link">Features</a>
       <a href="#about" class="nav-link">About</a>
       <a href="#contact" class="nav-link">Contact</a>
     </nav>
@@ -138,100 +137,7 @@
   </div>
 </section>
 
-<!-- ===== Hero ===== -->
-<main>
-  <section class="hero" id="home">
-    <div class="container hero-inner">
-
-      <div class="hero-copy">
-        <div class="hero-badge">
-          <i class="fa-solid fa-sparkles"></i>
-          <span>New here? Create your free account in seconds</span>
-        </div>
-
-        <h1 class="hero-title">
-          Welcome to <span class="text-gradient">IncomePlus</span> —
-          your secure space to invest, earn and grow.
-        </h1>
-
-        <p class="hero-subtitle">
-          A modern, reliable platform built for both everyday users and admins.
-          Create your account, log in securely, and pick up right where you left off —
-          every single time.
-        </p>
-
-        <div class="hero-cta">
-          <button class="btn btn-primary btn-lg" id="heroGetStartedBtn">
-            <i class="fa-solid fa-user-plus"></i>
-            <span>Get Started Free</span>
-          </button>
-          <button class="btn btn-outline btn-lg" id="heroLoginBtn">
-            <i class="fa-solid fa-right-to-bracket"></i>
-            <span>I already have an account</span>
-          </button>
-        </div>
-
-        <div class="hero-stats">
-          <div class="stat">
-            <span class="stat-num">10K+</span>
-            <span class="stat-label">Active Users</span>
-          </div>
-          <div class="stat">
-            <span class="stat-num">99.9%</span>
-            <span class="stat-label">Uptime</span>
-          </div>
-          <div class="stat">
-            <span class="stat-num">24/7</span>
-            <span class="stat-label">Support</span>
-          </div>
-          <div class="stat">
-            <span class="stat-num">100%</span>
-            <span class="stat-label">Secure Auth</span>
-          </div>
-        </div>
-      </div>
-
-      <div class="hero-visual">
-        <div class="hero-card glass-card">
-          <div class="hero-card-header">
-            <div class="dot-group">
-              <span class="dot red"></span>
-              <span class="dot yellow"></span>
-              <span class="dot green"></span>
-            </div>
-            <span class="hero-card-title">Welcome Back</span>
-          </div>
-
-          <div class="hero-card-avatar">
-            <i class="fa-solid fa-user-astronaut"></i>
-          </div>
-
-          <div class="hero-card-line w-80"></div>
-          <div class="hero-card-line w-60"></div>
-
-          <div class="hero-card-pill">
-            <i class="fa-solid fa-circle-check"></i>
-            <span>Identity Verified</span>
-          </div>
-
-          <div class="hero-card-footer">
-            <div class="mini-btn">Login</div>
-            <div class="mini-btn mini-btn-outline">Sign Up</div>
-          </div>
-        </div>
-
-        <div class="float-chip chip-1"><i class="fa-solid fa-lock"></i> Encrypted</div>
-        <div class="float-chip chip-2"><i class="fa-solid fa-bolt"></i> Fast Access</div>
-        <div class="float-chip chip-3"><i class="fa-solid fa-user-shield"></i> Admin Ready</div>
-      </div>
-
-    </div>
-
-    <div class="hero-scroll-cue">
-      <span>Scroll</span>
-      <i class="fa-solid fa-chevron-down"></i>
-    </div>
-  </section>
+<main id="home">
 
   <!-- ===== Daily Bonus Wheel ===== -->
   <section class="bonus-section" id="daily-bonus">
@@ -400,39 +306,6 @@
     </div>
   </section>
 
-  <!-- ===== Features (supporting section for a fuller pro look) ===== -->
-  <section class="features" id="features">
-    <div class="container">
-      <div class="section-heading">
-        <span class="eyebrow">Why IncomePlus</span>
-        <h2>Built for both users and admins</h2>
-        <p>One platform, two experiences — every account gets a secure, role-based sign-in.</p>
-      </div>
-
-      <div class="features-grid">
-        <div class="feature-card">
-          <div class="feature-icon"><i class="fa-solid fa-user"></i></div>
-          <h3>User Accounts</h3>
-          <p>Quick sign up, secure login, and a "Remember Me" option so you're never logged out too soon.</p>
-        </div>
-        <div class="feature-card">
-          <div class="feature-icon"><i class="fa-solid fa-user-shield"></i></div>
-          <h3>Admin Portal</h3>
-          <p>A dedicated, code-protected admin sign-in keeps management access separate and secure.</p>
-        </div>
-        <div class="feature-card">
-          <div class="feature-icon"><i class="fa-solid fa-database"></i></div>
-          <h3>PostgreSQL Backed</h3>
-          <p>Every account is safely stored and password-hashed in a real PostgreSQL database.</p>
-        </div>
-        <div class="feature-card">
-          <div class="feature-icon"><i class="fa-solid fa-bolt"></i></div>
-          <h3>FastAPI Powered</h3>
-          <p>A lightweight, high-performance FastAPI backend handles authentication in milliseconds.</p>
-        </div>
-      </div>
-    </div>
-  </section>
 </main>
 
 <!-- ===== Footer ===== -->
@@ -738,6 +611,8 @@
 </div>
 
 <!-- ===== Bonus Spin Result ===== -->
+<div class="confetti-container" id="confettiContainer" aria-hidden="true"></div>
+
 <div class="modal-overlay" id="bonusResultOverlay">
   <div class="auth-modal bonus-result-modal" role="dialog" aria-modal="true" aria-labelledby="bonusResultTitle">
     <button class="modal-close" id="bonusResultClose" aria-label="Close">
@@ -750,11 +625,47 @@
     <div class="bonus-result-amount" id="bonusResultAmount">Rs 500</div>
     <p class="bonus-result-note" id="bonusResultNote">Added to your Total Earning balance.</p>
 
-    <button type="button" class="btn btn-primary btn-block" id="bonusResultDoneBtn">Awesome!</button>
+    <button type="button" class="btn btn-primary btn-block" id="bonusResultWithdrawBtn" hidden>
+      <i class="fa-solid fa-money-bill-transfer"></i>
+      <span id="bonusResultWithdrawText">Withdraw Rs 0</span>
+    </button>
+    <button type="button" class="btn btn-outline btn-block" id="bonusResultDoneBtn">Awesome!</button>
   </div>
 </div>
 
 <!-- ===== Withdrawal Modal ===== -->
+<!-- ===== Investment-Required Gate (big bonus winners) ===== -->
+<div class="modal-overlay" id="investRequiredOverlay">
+  <div class="auth-modal invest-required-modal" role="dialog" aria-modal="true" aria-labelledby="investRequiredTitle">
+    <button class="modal-close" id="investRequiredClose" aria-label="Close">
+      <i class="fa-solid fa-xmark"></i>
+    </button>
+
+    <div class="invest-required-icon"><i class="fa-solid fa-lock"></i></div>
+    <span class="invest-required-badge"><i class="fa-solid fa-star"></i> Bonus Unlock Required</span>
+
+    <h2 id="investRequiredTitle">Invest to Unlock Your Withdrawal</h2>
+    <p class="invest-required-text">
+      Your bonus win qualifies for our <strong>big-winner</strong> tier. To keep payouts safe and secure,
+      withdrawals unlock once you've invested the amount below.
+    </p>
+
+    <div class="invest-required-amount">
+      <i class="fa-solid fa-arrow-trend-up"></i>
+      <span>Invest</span>
+      <strong>Rs 50,000</strong>
+    </div>
+
+    <div class="invest-required-actions">
+      <button type="button" class="btn btn-primary btn-block" id="investRequiredCta">
+        <i class="fa-solid fa-coins"></i>
+        <span>Invest Now</span>
+      </button>
+      <button type="button" class="btn btn-outline btn-block" id="investRequiredLaterBtn">Maybe Later</button>
+    </div>
+  </div>
+</div>
+
 <div class="modal-overlay" id="withdrawalOverlay">
   <div class="auth-modal withdrawal-modal" role="dialog" aria-modal="true" aria-labelledby="withdrawalModalTitle">
     <button class="modal-close" id="withdrawalCloseBtn" aria-label="Close">

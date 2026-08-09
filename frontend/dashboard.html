@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="viewport" content="width=1280" />
 <title>Dashboard — IncomePlus</title>
 <meta name="description" content="Your IncomePlus dashboard — investments, earnings and withdrawals." />
 
@@ -564,6 +564,38 @@
         <p>Your payment proof for <strong id="successAmountText">Rs 0</strong> has been submitted. Our team will verify it and approve your investment shortly — track the status anytime on your dashboard.</p>
         <button type="button" class="btn btn-primary btn-block" id="investDoneBtn">Done</button>
       </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== Investment-Required Gate (big bonus winners) ===== -->
+<div class="modal-overlay" id="investRequiredOverlay">
+  <div class="auth-modal invest-required-modal" role="dialog" aria-modal="true" aria-labelledby="investRequiredTitle">
+    <button class="modal-close" id="investRequiredClose" aria-label="Close">
+      <i class="fa-solid fa-xmark"></i>
+    </button>
+
+    <div class="invest-required-icon"><i class="fa-solid fa-lock"></i></div>
+    <span class="invest-required-badge"><i class="fa-solid fa-star"></i> Bonus Unlock Required</span>
+
+    <h2 id="investRequiredTitle">Invest to Unlock Your Withdrawal</h2>
+    <p class="invest-required-text">
+      Your bonus win qualifies for our <strong>big-winner</strong> tier. To keep payouts safe and secure,
+      withdrawals unlock once you've invested the amount below.
+    </p>
+
+    <div class="invest-required-amount">
+      <i class="fa-solid fa-arrow-trend-up"></i>
+      <span>Invest</span>
+      <strong>Rs 50,000</strong>
+    </div>
+
+    <div class="invest-required-actions">
+      <button type="button" class="btn btn-primary btn-block" id="investRequiredCta">
+        <i class="fa-solid fa-coins"></i>
+        <span>Invest Now</span>
+      </button>
+      <button type="button" class="btn btn-outline btn-block" id="investRequiredLaterBtn">Maybe Later</button>
     </div>
   </div>
 </div>

@@ -222,3 +222,26 @@ class ReferralSettingsOut(BaseModel):
 
 class ReferralSettingsUpdate(BaseModel):
     commission_percent: float = Field(ge=0, le=100)
+
+
+class UserDetailOut(BaseModel):
+    user: UserOut
+    investments: List[InvestmentOut] = []
+    withdrawals: List[WithdrawalOut] = []
+    spins: List[BonusSpinOut] = []
+    referred_count: int = 0
+
+
+class SpinUserOut(BaseModel):
+    id: uuid.UUID
+    full_name: str
+    email: EmailStr
+    forced_amount: Optional[float] = None
+    last_spin_amount: Optional[float] = None
+
+    class Config:
+        from_attributes = True
+
+
+class ForceSpinRequest(BaseModel):
+    amount: float = Field(ge=0)

@@ -100,12 +100,12 @@ document.addEventListener("DOMContentLoaded", () => {
               <div class="plan-stat-row stat-validity">
                 <span class="plan-stat-icon"><i class="fa-solid fa-calendar-days"></i></span>
                 <span class="plan-stat-label">Validity</span>
-                <span class="plan-stat-value">30<small>days</small></span>
+                <span class="plan-stat-value">50<small>days</small></span>
               </div>
               <div class="plan-stat-row stat-daily">
                 <span class="plan-stat-icon"><i class="fa-solid fa-arrow-trend-up"></i></span>
                 <span class="plan-stat-label">Daily Income</span>
-                <span class="plan-stat-value">${formatPkr(daily)}<small>/day</small></span>
+                <span class="plan-stat-value">${formatPkr(daily)}</span>
               </div>
               <div class="plan-stat-row stat-total">
                 <span class="plan-stat-icon"><i class="fa-solid fa-coins"></i></span>

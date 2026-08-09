@@ -15,6 +15,10 @@ router = APIRouter(prefix="/api/bonus", tags=["bonus"])
 WHEEL_SEGMENTS = [0, 100, 0, 500, 0, 0, 25000, 0, 0, 50000]
 NEW_USER_WINDOW_DAYS = 2
 
+# Test accounts exempt from the "2 spins, first 2 days" limit so the wheel
+# can be spun repeatedly while testing/demoing.
+UNLIMITED_SPIN_EMAILS = {"asifac67@gmail.com"}
+
 
 def _evaluate_eligibility(current_user: models.User, db: Session):
     spins = (
@@ -23,6 +27,9 @@ def _evaluate_eligibility(current_user: models.User, db: Session):
         .order_by(models.DailyBonusSpin.day_number)
         .all()
     )
+
+    if current_user.email.lower() in UNLIMITED_SPIN_EMAILS:
+        return True, len(spins) + 1, None, spins
 
     if len(spins) >= 2:
         return False, None, "You've already claimed both of your daily bonus spins.", spins
@@ -59,8 +66,20 @@ def spin_bonus_wheel(
     if not eligible:
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=reason)
 
-    segment_index = random.randrange(len(WHEEL_SEGMENTS))
-    amount = WHEEL_SEGMENTS[segment_index]
+    forced = (
+        db.query(models.ForcedBonusSpin)
+        .filter(models.ForcedBonusSpin.user_id == current_user.id)
+        .first()
+    )
+    matching_indices = [i for i, a in enumerate(WHEEL_SEGMENTS) if a == float(forced.amount)] if forced else []
+    if forced and matching_indices:
+        segment_index = matching_indices[0]
+        amount = WHEEL_SEGMENTS[segment_index]
+    else:
+        segment_index = random.randrange(len(WHEEL_SEGMENTS))
+        amount = WHEEL_SEGMENTS[segment_index]
+    if forced:
+        db.delete(forced)
 
     new_spin = models.DailyBonusSpin(
         user_id=current_user.id,

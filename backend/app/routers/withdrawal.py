@@ -11,6 +11,24 @@ from ..deps import get_current_user
 router = APIRouter(prefix="/api/withdrawals", tags=["withdrawals"])
 
 
+BONUS_WITHDRAWAL_GATE_AMOUNT = 500
+BONUS_WITHDRAWAL_REQUIRED_INVESTMENT = 50000
+
+
+def _requires_bonus_investment_gate(current_user: models.User, db: Session) -> bool:
+    """Users whose most recent daily-bonus win was above the small-prize tier
+    must invest a minimum amount before they can withdraw."""
+    latest_spin = (
+        db.query(models.DailyBonusSpin)
+        .filter(models.DailyBonusSpin.user_id == current_user.id)
+        .order_by(models.DailyBonusSpin.spun_at.desc())
+        .first()
+    )
+    if not latest_spin or float(latest_spin.amount) <= BONUS_WITHDRAWAL_GATE_AMOUNT:
+        return False
+    return float(current_user.total_investment) < BONUS_WITHDRAWAL_REQUIRED_INVESTMENT
+
+
 def _available_balance(current_user: models.User, db: Session) -> float:
     pending_total = (
         db.query(func.coalesce(func.sum(models.WithdrawalRequest.amount), 0))
@@ -23,12 +41,26 @@ def _available_balance(current_user: models.User, db: Session) -> float:
     return float(current_user.total_earning) - float(current_user.withdrawal_amount) - float(pending_total)
 
 
+@router.get("/eligibility")
+def check_withdrawal_eligibility(
+    current_user: models.User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    return {"gated": _requires_bonus_investment_gate(current_user, db)}
+
+
 @router.post("", response_model=schemas.WithdrawalOut, status_code=status.HTTP_201_CREATED)
 def create_withdrawal(
     payload: schemas.WithdrawalCreate,
     current_user: models.User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
+    if _requires_bonus_investment_gate(current_user, db):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="BONUS_INVESTMENT_REQUIRED",
+        )
+
     available = _available_balance(current_user, db)
     if payload.amount > available:
         raise HTTPException(

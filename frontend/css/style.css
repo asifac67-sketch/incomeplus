@@ -536,17 +536,6 @@ ul { list-style: none; }
 
 @media (min-width: 720px) {
   #investmentOverlay .plan-grid { grid-template-columns: repeat(3, 1fr); }
-  #investmentOverlay .plan-card.featured { grid-column: span 3; }
-
-  #investmentOverlay .plan-card.featured .plan-stats-list { flex-direction: row; gap: 12px; }
-  #investmentOverlay .plan-card.featured .plan-stat-row {
-    flex: 1;
-    flex-direction: column;
-    text-align: center;
-    gap: 6px;
-    padding: 14px 10px;
-  }
-  #investmentOverlay .plan-card.featured .plan-stat-label { flex: none; }
 }
 
 #investmentOverlay .invest-step#investStepPayment,
@@ -592,7 +581,6 @@ ul { list-style: none; }
 .plan-card.selected::before { opacity: 1; }
 
 .plan-card.featured {
-  grid-column: span 2;
   border-color: rgba(255, 110, 199, 0.35);
   background: linear-gradient(180deg, rgba(255, 110, 199, 0.08), rgba(108, 92, 231, 0.04));
 }
@@ -1071,11 +1059,17 @@ ul { list-style: none; }
 #features, #contact { scroll-margin-top: var(--header-h); }
 
 .hero-inner {
-  display: grid;
-  grid-template-columns: 1.05fr 0.95fr;
-  align-items: center;
-  gap: 60px;
+  display: flex;
+  justify-content: center;
 }
+
+.hero-copy {
+  max-width: 720px;
+  text-align: center;
+}
+
+.hero-cta { justify-content: center; }
+.hero-stats { justify-content: center; }
 
 .hero-badge {
   display: inline-flex;
@@ -1502,6 +1496,122 @@ ul { list-style: none; }
 .wheel-hub .btn-spinner { display: none; }
 .wheel-hub.is-loading .btn-text { visibility: hidden; }
 .wheel-hub.is-loading .btn-spinner { display: block; position: absolute; }
+
+/* ----- Investment-required gate (big bonus winners) ----- */
+.invest-required-modal {
+  text-align: center;
+  padding: 44px 34px 32px;
+  overflow: visible;
+}
+
+.invest-required-icon {
+  position: relative;
+  width: 84px;
+  height: 84px;
+  margin: 0 auto 20px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  font-size: 2rem;
+  color: #fff;
+  background: var(--gradient-warm);
+  box-shadow: 0 0 0 8px rgba(255, 110, 199, 0.1), 0 12px 32px rgba(255, 110, 199, 0.35);
+  animation: invest-gate-pulse 2.2s ease-in-out infinite;
+}
+
+@keyframes invest-gate-pulse {
+  0%, 100% { box-shadow: 0 0 0 8px rgba(255, 110, 199, 0.1), 0 12px 32px rgba(255, 110, 199, 0.35); }
+  50% { box-shadow: 0 0 0 14px rgba(255, 110, 199, 0.05), 0 12px 40px rgba(255, 110, 199, 0.45); }
+}
+
+.invest-required-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0 auto 14px;
+  padding: 6px 16px;
+  border-radius: var(--radius-pill);
+  background: rgba(255, 110, 199, 0.14);
+  border: 1px solid rgba(255, 110, 199, 0.3);
+  color: #ff9ad6;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.invest-required-modal h2 {
+  font-family: var(--font-heading);
+  font-size: 1.5rem;
+  font-weight: 800;
+  margin-bottom: 12px;
+  line-height: 1.3;
+}
+
+.invest-required-text {
+  font-size: 0.92rem;
+  line-height: 1.6;
+  color: var(--text-secondary);
+  margin-bottom: 8px;
+}
+
+.invest-required-text strong {
+  color: var(--text-primary);
+  background: var(--gradient-warm);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.invest-required-amount {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin: 20px 0 24px;
+  padding: 16px;
+  border-radius: var(--radius-md);
+  background: linear-gradient(180deg, rgba(255, 110, 199, 0.1), rgba(108, 92, 231, 0.06));
+  border: 1px solid rgba(255, 110, 199, 0.25);
+}
+
+.invest-required-amount i { color: #ff9ad6; font-size: 1.1rem; }
+
+.invest-required-amount strong {
+  font-family: var(--font-heading);
+  font-size: 1.6rem;
+  font-weight: 800;
+  background: var(--gradient-warm);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.invest-required-actions { display: flex; flex-direction: column; gap: 10px; margin-top: 8px; }
+
+/* ----- Confetti (win celebration) ----- */
+.confetti-container {
+  position: fixed;
+  inset: 0;
+  z-index: 1100;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.confetti-piece {
+  position: absolute;
+  top: -20px;
+  width: 9px;
+  height: 14px;
+  opacity: 0.95;
+  will-change: transform, opacity;
+  animation: confetti-fall linear forwards;
+}
+
+@keyframes confetti-fall {
+  0% { transform: translate(0, 0) rotate(0deg); opacity: 1; }
+  100% { transform: translate(var(--drift, 0px), 105vh) rotate(var(--spin, 540deg)); opacity: 0.9; }
+}
 
 /* ----- Result modal ----- */
 .bonus-result-modal { text-align: center; padding: 40px 32px 32px; }
@@ -2270,9 +2380,6 @@ ul { list-style: none; }
    Responsive
 ============================================ */
 @media (max-width: 980px) {
-  .hero-inner { grid-template-columns: 1fr; }
-  .hero-visual { order: -1; margin-bottom: 20px; }
-  .float-chip { display: none; }
   .features-grid { grid-template-columns: repeat(2, 1fr); }
   .wallet-grid { grid-template-columns: 1fr; }
   .process-grid { grid-template-columns: repeat(2, 1fr); }

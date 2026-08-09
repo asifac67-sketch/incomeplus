@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="viewport" content="width=1280" />
 <title>Admin Panel — IncomePlus</title>
 <meta name="description" content="Review and approve investment requests for IncomePlus." />
 
@@ -98,6 +98,12 @@
         <button class="type-tab" data-type="referrals">
           <i class="fa-solid fa-user-group"></i> Referral Program
         </button>
+        <button class="type-tab" data-type="spin">
+          <i class="fa-solid fa-dharmachakra"></i> Spin Control
+        </button>
+        <button class="type-tab" data-type="users">
+          <i class="fa-solid fa-users"></i> All Users
+        </button>
       </div>
 
       <!-- ===== Requests panel (Investments / Withdrawals) ===== -->
@@ -191,8 +197,138 @@
         </form>
       </div>
 
+      <!-- ===== Spin Control panel ===== -->
+      <div id="spinPanel" hidden>
+        <div class="referral-settings-card">
+          <div class="referral-settings-icon"><i class="fa-solid fa-dharmachakra"></i></div>
+          <div class="referral-settings-info">
+            <h3>Daily Bonus Spin Control</h3>
+            <p>Search a user and set a fixed prize for their next spin — the wheel will land on that exact amount, once. Clears itself automatically after they spin.</p>
+          </div>
+        </div>
+
+        <div class="auth-alert" id="spinAlert"></div>
+
+        <div class="spin-search-wrap spin-search-toolbar">
+          <div class="input-wrap">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <input type="text" id="spinUserSearch" placeholder="Search by name or email&hellip;" />
+          </div>
+          <button type="button" class="btn btn-outline btn-sm" id="setAllSpinBtn">
+            <i class="fa-solid fa-users-gear"></i>
+            <span>Set for All Users</span>
+          </button>
+        </div>
+
+        <div class="spin-user-list" id="spinUserList"></div>
+
+        <div class="empty-state" id="spinEmptyState" hidden>
+          <i class="fa-solid fa-user-magnifying-glass"></i>
+          <p>No users found. Try a different search.</p>
+        </div>
+      </div>
+
+      <!-- ===== All Users panel ===== -->
+      <div id="usersPanel" hidden>
+        <div class="referral-settings-card">
+          <div class="referral-settings-icon"><i class="fa-solid fa-users"></i></div>
+          <div class="referral-settings-info">
+            <h3>All Users</h3>
+            <p>Every registered account — click one to see their complete investment, withdrawal and bonus-spin history.</p>
+          </div>
+        </div>
+
+        <div class="spin-search-wrap">
+          <div class="input-wrap">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <input type="text" id="usersSearch" placeholder="Search by name or email&hellip;" />
+          </div>
+        </div>
+
+        <div class="spin-user-list" id="usersList"></div>
+
+        <div class="empty-state" id="usersEmptyState" hidden>
+          <i class="fa-solid fa-user-magnifying-glass"></i>
+          <p>No users found. Try a different search.</p>
+        </div>
+      </div>
+
     </div>
   </main>
+</div>
+
+<!-- ===== User Detail Modal ===== -->
+<div class="modal-overlay" id="userDetailOverlay">
+  <div class="auth-modal user-detail-modal" role="dialog" aria-modal="true" aria-labelledby="userDetailName">
+    <button class="modal-close" id="userDetailClose" aria-label="Close">
+      <i class="fa-solid fa-xmark"></i>
+    </button>
+
+    <div class="user-detail-header">
+      <span class="user-detail-avatar" id="userDetailAvatar">?</span>
+      <div>
+        <h2 id="userDetailName">&nbsp;</h2>
+        <p id="userDetailEmail">&nbsp;</p>
+        <span class="user-detail-joined" id="userDetailJoined"></span>
+      </div>
+    </div>
+
+    <div class="user-detail-stats">
+      <div class="user-detail-stat">
+        <span class="user-detail-stat-label">Total Earning</span>
+        <span class="user-detail-stat-value" id="userDetailEarning">Rs 0</span>
+      </div>
+      <div class="user-detail-stat">
+        <span class="user-detail-stat-label">Total Investment</span>
+        <span class="user-detail-stat-value" id="userDetailInvestment">Rs 0</span>
+      </div>
+      <div class="user-detail-stat">
+        <span class="user-detail-stat-label">Withdrawn</span>
+        <span class="user-detail-stat-value" id="userDetailWithdrawn">Rs 0</span>
+      </div>
+      <div class="user-detail-stat">
+        <span class="user-detail-stat-label">Referrals</span>
+        <span class="user-detail-stat-value" id="userDetailReferrals">0</span>
+      </div>
+    </div>
+
+    <div class="auth-tabs">
+      <button class="auth-tab active" data-history-tab="investments">Investments</button>
+      <button class="auth-tab" data-history-tab="withdrawals">Withdrawals</button>
+      <button class="auth-tab" data-history-tab="spins">Bonus Spins</button>
+    </div>
+
+    <div class="user-detail-history">
+      <div class="investment-list" id="userDetailInvestments"></div>
+      <div class="investment-list" id="userDetailWithdrawals" hidden></div>
+      <div class="investment-list" id="userDetailSpins" hidden></div>
+      <p class="plan-status-note" id="userDetailEmptyNote" hidden>Nothing here yet.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ===== Force Spin Modal ===== -->
+<div class="modal-overlay" id="forceSpinModalOverlay">
+  <div class="auth-modal" role="dialog" aria-modal="true" aria-labelledby="forceSpinModalTitle">
+    <button class="modal-close" id="forceSpinModalClose" aria-label="Close">
+      <i class="fa-solid fa-xmark"></i>
+    </button>
+
+    <div class="auth-modal-header">
+      <span class="brand-mark"><i class="fa-solid fa-dharmachakra"></i></span>
+      <h2 id="forceSpinModalTitle">Set Next Spin Result</h2>
+      <p id="forceSpinModalSubtitle">Choose the amount this user's next spin will land on.</p>
+    </div>
+
+    <div class="auth-alert" id="forceSpinAlert"></div>
+
+    <div class="spin-amount-grid" id="spinAmountGrid"></div>
+
+    <button type="button" class="btn btn-primary btn-block" id="forceSpinSaveBtn">
+      <span class="btn-text">Set Result</span>
+      <i class="fa-solid fa-circle-notch fa-spin btn-spinner"></i>
+    </button>
+  </div>
 </div>
 
 <!-- ===== Add / Edit Plan Modal ===== -->
