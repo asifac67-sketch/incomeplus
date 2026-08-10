@@ -979,7 +979,6 @@
 }
 
 @media (max-width: 400px) {
-  .quicklink-grid { grid-template-columns: 1fr; }
   .dash-profile-email { max-width: 140px; }
 }
 
