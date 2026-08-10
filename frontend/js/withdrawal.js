@@ -26,6 +26,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const investRequiredClose = document.getElementById("investRequiredClose");
   const investRequiredLaterBtn = document.getElementById("investRequiredLaterBtn");
   const investRequiredCta = document.getElementById("investRequiredCta");
+  const investRequiredAmountText = document.getElementById("investRequiredAmountText");
 
   if (!overlay) return;
 
@@ -77,7 +78,7 @@ document.addEventListener("DOMContentLoaded", () => {
       if (gateRes.ok) {
         const gateData = await gateRes.json();
         if (gateData.gated) {
-          openInvestRequiredModal();
+          openInvestRequiredModal(gateData.required_investment);
           return;
         }
       }
@@ -110,7 +111,10 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   // ---------- Investment-required gate (big bonus winners) ----------
-  function openInvestRequiredModal() {
+  function openInvestRequiredModal(requiredAmount) {
+    if (investRequiredAmountText && requiredAmount) {
+      investRequiredAmountText.textContent = formatPkr(requiredAmount);
+    }
     investRequiredOverlay?.classList.add("open");
     document.body.style.overflow = "hidden";
   }
@@ -190,9 +194,9 @@ document.addEventListener("DOMContentLoaded", () => {
       const data = await res.json();
 
       if (!res.ok) {
-        if (data.detail === "BONUS_INVESTMENT_REQUIRED") {
+        if (data.detail && data.detail.code === "BONUS_INVESTMENT_REQUIRED") {
           closeWithdrawalModal();
-          openInvestRequiredModal();
+          openInvestRequiredModal(data.detail.required_investment);
           return;
         }
         showAlert(formatApiError(data));

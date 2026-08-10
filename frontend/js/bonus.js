@@ -1,9 +1,10 @@
 // Daily Bonus Wheel: renders the wheel, checks eligibility, spins, and reveals the result.
-// Mirrors the backend's WHEEL_SEGMENTS in app/routers/bonus.py — keep the two in sync.
+// Prize amounts are admin-editable — fetched live from /api/bonus/segments
+// rather than hardcoded, so the wheel always matches what's configured.
 
-document.addEventListener("DOMContentLoaded", () => {
-  const WHEEL_SEGMENTS = [0, 100, 0, 500, 0, 0, 25000, 0, 0, 50000];
-  const SEGMENT_ANGLE = 360 / WHEEL_SEGMENTS.length;
+document.addEventListener("DOMContentLoaded", async () => {
+  let WHEEL_SEGMENTS = [0, 500, 0, 6000, 0, 15000, 0, 500000]; // fallback until loaded
+  let SEGMENT_ANGLE = 360 / WHEEL_SEGMENTS.length;
 
   const wheel = document.getElementById("bonusWheel");
   const wheelLabels = document.getElementById("wheelLabels");
@@ -31,21 +32,49 @@ document.addEventListener("DOMContentLoaded", () => {
   // (a % of the wheel's own height works for width/height, unlike translate %,
   // which is relative to the element's own tiny box) and rotated from its top —
   // so its bottom end swings out to the right point at the right angle.
-  WHEEL_SEGMENTS.forEach((amount, i) => {
-    const angle = i * SEGMENT_ANGLE + SEGMENT_ANGLE / 2;
+  function renderWheelLabels(segments) {
+    wheelLabels.innerHTML = "";
+    segments.forEach((amount, i) => {
+      const angle = i * SEGMENT_ANGLE + SEGMENT_ANGLE / 2;
+      // The anchor's un-rotated resting position points straight down (180deg),
+      // not up — so its rotation must be offset by -180 to land the label at
+      // the intended angle (matching the color segment spinTo() targets).
+      const anchorRotate = angle - 180;
 
-    const anchor = document.createElement("div");
-    anchor.className = "wheel-label-anchor";
-    anchor.style.transform = `rotate(${angle}deg)`;
+      const anchor = document.createElement("div");
+      anchor.className = "wheel-label-anchor";
+      anchor.style.transform = `rotate(${anchorRotate}deg)`;
 
-    const label = document.createElement("span");
-    label.className = "wheel-label";
-    label.textContent = amount >= 1000 ? `Rs ${amount / 1000}K` : `Rs ${amount}`;
-    label.style.transform = `translate(-50%, 50%) rotate(${-angle}deg)`;
+      const label = document.createElement("span");
+      label.className = "wheel-label";
+      label.textContent =
+        amount >= 100000 ? `Rs ${amount / 100000}L` : amount >= 1000 ? `Rs ${amount / 1000}K` : `Rs ${amount}`;
+      label.style.transform = `translate(-50%, 50%) rotate(${-anchorRotate}deg)`;
 
-    anchor.appendChild(label);
-    wheelLabels.appendChild(anchor);
-  });
+      anchor.appendChild(label);
+      wheelLabels.appendChild(anchor);
+    });
+  }
+
+  renderWheelLabels(WHEEL_SEGMENTS);
+
+  async function loadWheelSegments() {
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/bonus/segments`);
+      if (!res.ok) return;
+      const segments = await res.json();
+      if (!segments || segments.length === 0) return;
+
+      segments.sort((a, b) => a.position - b.position);
+      WHEEL_SEGMENTS = segments.map((s) => s.amount);
+      SEGMENT_ANGLE = 360 / WHEEL_SEGMENTS.length;
+      renderWheelLabels(WHEEL_SEGMENTS);
+    } catch (err) {
+      // Keep the fallback segments already rendered.
+    }
+  }
+
+  loadWheelSegments();
 
   const bulbsContainer = document.createElement("div");
   bulbsContainer.className = "wheel-bulbs";
@@ -113,6 +142,18 @@ document.addEventListener("DOMContentLoaded", () => {
 
   bonusSignupBtn?.addEventListener("click", () => window.RT?.openAuthModal?.("signup"));
 
+  document.getElementById("spinNowBtn")?.addEventListener("click", () => {
+    const token = window.RT?.getToken?.();
+    if (!token) {
+      window.RT?.openAuthModal?.("signup");
+      return;
+    }
+    document.getElementById("daily-bonus")?.scrollIntoView({ behavior: "smooth", block: "center" });
+    if (!spinBtn.disabled) {
+      spinBtn.click();
+    }
+  });
+
   // ---------- Spin ----------
   spinBtn?.addEventListener("click", async () => {
     const token = window.RT?.getToken?.();
@@ -173,11 +214,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function spinTo(segmentIndex, onDone) {
     const segmentCenter = segmentIndex * SEGMENT_ANGLE + SEGMENT_ANGLE / 2;
-    const jitter = (Math.random() - 0.5) * (SEGMENT_ANGLE * 0.5);
-    const fullSpins = 6 * 360;
+    const fullSpins = 10 * 360;
 
-    // Rotate so the winning segment's center lands under the top pointer.
-    const targetWithinTurn = 360 - segmentCenter + jitter;
+    // Rotate so the winning segment's exact center lands under the top pointer —
+    // no jitter, so what the wheel visually lands on always matches the awarded amount.
+    const targetWithinTurn = 360 - segmentCenter;
     cumulativeRotation += fullSpins + targetWithinTurn - (cumulativeRotation % 360);
 
     wheel.classList.add("spinning");

@@ -137,11 +137,18 @@
             </div>
           </div>
 
-          <div class="earnings-ticker">
-            <i class="fa-solid fa-sun"></i>
-            <span id="earningsTicker">Rs 0.000000</span>
+          <div class="earnings-ticker-row">
+            <div class="earnings-ticker">
+              <i class="fa-solid fa-sun"></i>
+              <span id="earningsTicker">Rs 0.000000</span>
+            </div>
+            <button type="button" class="btn btn-primary btn-sm claim-earnings-btn" id="claimEarningsBtn" disabled>
+              <span class="btn-text"><i class="fa-solid fa-wallet"></i> Claim</span>
+              <i class="fa-solid fa-circle-notch fa-spin btn-spinner"></i>
+            </button>
           </div>
           <div class="earnings-rate"><i class="fa-solid fa-bolt"></i> <span id="earningsRate">+Rs 0.000000/sec</span></div>
+          <div class="auth-alert" id="claimAlert"></div>
 
           <div class="earnings-status">
             <span id="earningsStatusText">Loading your investments…</span>
@@ -169,7 +176,7 @@
           <div class="dash-wallet-card">
             <div class="dash-wallet-icon earning"><i class="fa-solid fa-sack-dollar"></i></div>
             <div class="dash-wallet-info">
-              <span class="dash-wallet-label">Earning Wallet</span>
+              <span class="dash-wallet-label">My Balance</span>
               <span class="dash-wallet-amount" id="dashEarningWallet">Rs 0</span>
             </div>
             <button type="button" class="btn btn-primary btn-sm" data-action="open-withdraw">Withdraw</button>
@@ -597,7 +604,7 @@
     <div class="invest-required-amount">
       <i class="fa-solid fa-arrow-trend-up"></i>
       <span>Invest</span>
-      <strong>Rs 50,000</strong>
+      <strong id="investRequiredAmountText">Rs 50,000</strong>
     </div>
 
     <div class="invest-required-actions">

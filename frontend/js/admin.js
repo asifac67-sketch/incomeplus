@@ -14,9 +14,15 @@ document.addEventListener("DOMContentLoaded", () => {
   const adminLoginBtn = document.getElementById("adminLoginBtn");
 
   const adminChipName = document.getElementById("adminChipName");
+  const adminAvatarInitials = document.getElementById("adminAvatarInitials");
   const adminLogoutBtn = document.getElementById("adminLogoutBtn");
 
-  const typeTabs = document.querySelectorAll(".type-tab");
+  const adminSidebar = document.getElementById("adminSidebar");
+  const adminSidebarBackdrop = document.getElementById("adminSidebarBackdrop");
+  const adminMenuToggle = document.getElementById("adminMenuToggle");
+  const adminTopbarTitle = document.getElementById("adminTopbarTitle");
+
+  const typeTabs = document.querySelectorAll("#typeTabs [data-type]");
 
   const statPending = document.getElementById("statPending");
   const statApproved = document.getElementById("statApproved");
@@ -131,6 +137,7 @@ document.addEventListener("DOMContentLoaded", () => {
     adminGate.hidden = true;
     adminDashboard.hidden = false;
     adminChipName.textContent = user.full_name;
+    if (adminAvatarInitials) adminAvatarInitials.textContent = initials(user.full_name);
     loadRequests();
   }
 
@@ -209,6 +216,21 @@ document.addEventListener("DOMContentLoaded", () => {
   document.getElementById("backNavBtn")?.addEventListener("click", () => {
     window.history.back();
   });
+  document.getElementById("adminSidebarBackBtn")?.addEventListener("click", () => {
+    window.history.back();
+  });
+
+  // ---------- Mobile sidebar toggle ----------
+  function openAdminSidebar() {
+    adminSidebar?.classList.add("open");
+    adminSidebarBackdrop?.classList.add("open");
+  }
+  function closeAdminSidebar() {
+    adminSidebar?.classList.remove("open");
+    adminSidebarBackdrop?.classList.remove("open");
+  }
+  adminMenuToggle?.addEventListener("click", openAdminSidebar);
+  adminSidebarBackdrop?.addEventListener("click", closeAdminSidebar);
 
   function formatApiError(data) {
     if (!data) return "Something went wrong. Please try again.";
@@ -247,6 +269,15 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   // ---------- Type tabs (Investments / Withdrawals / Plans / Referrals) ----------
+  const TAB_TITLES = {
+    investments: "Investment Requests",
+    withdrawals: "Withdrawal Requests",
+    plans: "Investment Plans",
+    referrals: "Referral Program",
+    spin: "Spin Control",
+    users: "All Users",
+  };
+
   function hideAllPanels() {
     requestsPanel.hidden = true;
     plansPanel.hidden = true;
@@ -257,10 +288,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
   typeTabs.forEach((tab) => {
     tab.addEventListener("click", () => {
+      closeAdminSidebar();
       if (tab.dataset.type === currentType) return;
       typeTabs.forEach((t) => t.classList.remove("active"));
       tab.classList.add("active");
       currentType = tab.dataset.type;
+      if (adminTopbarTitle) adminTopbarTitle.textContent = TAB_TITLES[currentType] || "Admin Panel";
       hideAllPanels();
 
       if (currentType === "plans") {
@@ -277,6 +310,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
       if (currentType === "spin") {
         spinPanel.hidden = false;
+        loadWheelSegments();
         loadSpinUsers();
         return;
       }
@@ -737,8 +771,100 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
+  // ---------- Wheel Prizes ----------
+  const wheelSegmentsGrid = document.getElementById("wheelSegmentsGrid");
+  const wheelSegmentsAlert = document.getElementById("wheelSegmentsAlert");
+  const saveWheelSegmentsBtn = document.getElementById("saveWheelSegmentsBtn");
+  let wheelPrizeOptions = [0, 500, 6000, 15000, 500000]; // fallback until loaded from the server
+
+  function showWheelSegmentsAlert(message, type = "error") {
+    wheelSegmentsAlert.textContent = message;
+    wheelSegmentsAlert.className = `auth-alert show ${type}`;
+  }
+
+  function renderWheelSegments(segments) {
+    wheelSegmentsGrid.innerHTML = segments
+      .map(
+        (seg) => `
+          <div class="wheel-segment-card" data-position="${seg.position}">
+            <div class="wheel-segment-card-title"><i class="fa-solid fa-dharmachakra"></i> Segment ${seg.position + 1}</div>
+            <div class="wheel-segment-field">
+              <label>Amount (Rs)</label>
+              <input type="number" min="0" step="1" class="wheel-segment-amount" value="${seg.amount}" />
+            </div>
+            <div class="wheel-segment-field">
+              <label>Investment to unlock withdrawal (optional)</label>
+              <input type="number" min="0" step="1" class="wheel-segment-required" placeholder="No restriction" value="${seg.required_investment ?? ""}" />
+            </div>
+          </div>
+        `
+      )
+      .join("");
+  }
+
+  async function loadWheelSegments() {
+    const token = getToken();
+    if (!token) return;
+
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/admin/wheel-segments`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!res.ok) {
+        if (res.status === 401 || res.status === 403) {
+          clearToken();
+          showGate();
+        }
+        return;
+      }
+      const segments = await res.json();
+      renderWheelSegments(segments);
+      wheelPrizeOptions = segments.map((s) => s.amount);
+    } catch (err) {
+      showWheelSegmentsAlert("Could not reach the server. Is the FastAPI backend running?");
+    }
+  }
+
+  saveWheelSegmentsBtn?.addEventListener("click", async () => {
+    wheelSegmentsAlert.className = "auth-alert";
+    saveWheelSegmentsBtn.classList.add("is-loading");
+    saveWheelSegmentsBtn.disabled = true;
+
+    const segments = Array.from(wheelSegmentsGrid.querySelectorAll(".wheel-segment-card")).map((card) => {
+      const requiredValue = card.querySelector(".wheel-segment-required").value;
+      return {
+        position: Number(card.dataset.position),
+        amount: Number(card.querySelector(".wheel-segment-amount").value),
+        required_investment: requiredValue === "" ? null : Number(requiredValue),
+      };
+    });
+
+    try {
+      const token = getToken();
+      const res = await fetch(`${API_BASE_URL}/api/admin/wheel-segments`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ segments }),
+      });
+      const data = await res.json();
+
+      if (!res.ok) {
+        showWheelSegmentsAlert(formatApiError(data));
+        return;
+      }
+
+      renderWheelSegments(data);
+      wheelPrizeOptions = data.map((s) => s.amount);
+      showWheelSegmentsAlert("Wheel prizes updated.", "success");
+    } catch (err) {
+      showWheelSegmentsAlert("Could not reach the server. Is the FastAPI backend running?");
+    } finally {
+      saveWheelSegmentsBtn.classList.remove("is-loading");
+      saveWheelSegmentsBtn.disabled = false;
+    }
+  });
+
   // ---------- Spin Control ----------
-  const WHEEL_PRIZE_OPTIONS = [0, 100, 500, 25000, 50000];
   let spinSearchDebounce = null;
   let activeForceSpinUser = null;
   let selectedForceAmount = null;
@@ -871,7 +997,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // ---------- Force Spin modal ----------
   function renderSpinAmountGrid() {
-    spinAmountGrid.innerHTML = WHEEL_PRIZE_OPTIONS.map(
+    spinAmountGrid.innerHTML = wheelPrizeOptions.map(
       (amount) => `<button type="button" class="spin-amount-option" data-amount="${amount}">${formatPkr(amount)}</button>`
     ).join("");
 

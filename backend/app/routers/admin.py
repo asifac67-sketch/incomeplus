@@ -329,6 +329,40 @@ def get_user_detail(
     )
 
 
+# ---------- Wheel Prizes (spin amounts + withdrawal unlock requirements) ----------
+
+@router.get("/wheel-segments", response_model=List[schemas.WheelSegmentOut])
+def list_wheel_segments(
+    _admin: models.User = Depends(get_current_admin),
+    db: Session = Depends(get_db),
+):
+    return db.query(models.WheelSegment).order_by(models.WheelSegment.position).all()
+
+
+@router.put("/wheel-segments", response_model=List[schemas.WheelSegmentOut])
+def update_wheel_segments(
+    payload: schemas.WheelSegmentsUpdateRequest,
+    _admin: models.User = Depends(get_current_admin),
+    db: Session = Depends(get_db),
+):
+    segments_by_position = {
+        s.position: s for s in db.query(models.WheelSegment).all()
+    }
+
+    for update in payload.segments:
+        segment = segments_by_position.get(update.position)
+        if not segment:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"No wheel segment at position {update.position}.",
+            )
+        segment.amount = update.amount
+        segment.required_investment = update.required_investment
+
+    db.commit()
+    return db.query(models.WheelSegment).order_by(models.WheelSegment.position).all()
+
+
 # ---------- Daily Bonus Spin Control ----------
 
 @router.get("/spin-control/users", response_model=List[schemas.SpinUserOut])

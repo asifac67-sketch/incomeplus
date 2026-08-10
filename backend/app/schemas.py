@@ -224,6 +224,37 @@ class ReferralSettingsUpdate(BaseModel):
     commission_percent: float = Field(ge=0, le=100)
 
 
+class WheelSegmentOut(BaseModel):
+    position: int
+    amount: float
+    required_investment: Optional[float] = None
+
+    class Config:
+        from_attributes = True
+
+
+class WheelSegmentUpdate(BaseModel):
+    position: int = Field(ge=0, le=7)
+    amount: float = Field(ge=0)
+    required_investment: Optional[float] = Field(default=None, ge=0)
+
+
+class WheelSegmentsUpdateRequest(BaseModel):
+    segments: List[WheelSegmentUpdate]
+
+
+class EarningClaimStatusOut(BaseModel):
+    daily_rate: float
+    claimable_amount: float
+    last_claimed_at: datetime
+
+
+class EarningClaimResult(BaseModel):
+    claimed_amount: float
+    total_earning: float
+    last_claimed_at: datetime
+
+
 class UserDetailOut(BaseModel):
     user: UserOut
     investments: List[InvestmentOut] = []

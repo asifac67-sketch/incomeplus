@@ -48,6 +48,8 @@ document.addEventListener("DOMContentLoaded", () => {
   const payoutHours = document.getElementById("payoutHours");
   const payoutMinutes = document.getElementById("payoutMinutes");
   const payoutSeconds = document.getElementById("payoutSeconds");
+  const claimEarningsBtn = document.getElementById("claimEarningsBtn");
+  const claimAlert = document.getElementById("claimAlert");
 
   const dashTotalInvested = document.getElementById("dashTotalInvested");
   const dashEarningWallet = document.getElementById("dashEarningWallet");
@@ -92,6 +94,11 @@ document.addEventListener("DOMContentLoaded", () => {
   let investments = [];
   let withdrawals = [];
   let referralLink = "";
+  let claimBaselineAt = null;
+
+  function parseUtc(isoString) {
+    return new Date(isoString.endsWith("Z") ? isoString : `${isoString}Z`);
+  }
 
   function formatPkr(amount) {
     return `Rs ${Number(amount).toLocaleString("en-US")}`;
@@ -248,6 +255,19 @@ document.addEventListener("DOMContentLoaded", () => {
     const token = getToken();
     try {
       const res = await fetch(`${API_BASE_URL}/api/referrals/me`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!res.ok) return null;
+      return await res.json();
+    } catch (err) {
+      return null;
+    }
+  }
+
+  async function loadClaimStatus() {
+    const token = getToken();
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/investments/earnings/claim-status`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       if (!res.ok) return null;
@@ -547,15 +567,17 @@ document.addEventListener("DOMContentLoaded", () => {
   // ---------- Live earnings ticker + payout countdown ----------
   function tick() {
     const now = new Date();
-    const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
     const tomorrowStart = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
 
-    const elapsedSeconds = (now - todayStart) / 1000;
     const perSecondRate = dailyRate / 86400;
-    const earningsToday = Math.min(dailyRate, perSecondRate * elapsedSeconds);
+    const unclaimed = claimBaselineAt ? Math.max(0, (now - claimBaselineAt) / 1000) * perSecondRate : 0;
 
-    earningsTicker.textContent = `Rs ${earningsToday.toFixed(6)}`;
+    earningsTicker.textContent = `Rs ${unclaimed.toFixed(6)}`;
     earningsRate.textContent = `+Rs ${perSecondRate.toFixed(6)}/sec`;
+
+    if (claimEarningsBtn) {
+      claimEarningsBtn.disabled = !(dailyRate > 0 && unclaimed >= 0.01);
+    }
 
     const msLeft = Math.max(0, tomorrowStart - now);
     const totalSeconds = Math.floor(msLeft / 1000);
@@ -570,17 +592,19 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // ---------- Refresh everything ----------
   async function refreshDashboardData() {
-    const [user, investmentItems, withdrawalItems, referralData] = await Promise.all([
+    const [user, investmentItems, withdrawalItems, referralData, claimStatus] = await Promise.all([
       loadUser(),
       loadInvestments(),
       loadWithdrawals(),
       loadReferrals(),
+      loadClaimStatus(),
     ]);
     if (!user) return;
 
     investments = investmentItems;
     withdrawals = withdrawalItems;
     dailyRate = computeDailyRate(investments);
+    claimBaselineAt = claimStatus ? parseUtc(claimStatus.last_claimed_at) : null;
 
     renderProfile(user);
     renderWallets(user);
@@ -596,6 +620,41 @@ document.addEventListener("DOMContentLoaded", () => {
   // Refresh dashboard data once an investment/withdrawal is successfully submitted.
   document.getElementById("investDoneBtn")?.addEventListener("click", refreshDashboardData);
   document.getElementById("withdrawDoneBtn")?.addEventListener("click", refreshDashboardData);
+
+  // ---------- Claim accrued earnings into the real wallet ----------
+  claimEarningsBtn?.addEventListener("click", async () => {
+    claimAlert.className = "auth-alert";
+    claimAlert.textContent = "";
+    claimEarningsBtn.classList.add("is-loading");
+    claimEarningsBtn.disabled = true;
+
+    try {
+      const token = getToken();
+      const res = await fetch(`${API_BASE_URL}/api/investments/earnings/claim`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const data = await res.json();
+
+      if (!res.ok) {
+        claimAlert.textContent = data.detail || "Could not claim right now.";
+        claimAlert.className = "auth-alert show error";
+        return;
+      }
+
+      claimBaselineAt = parseUtc(data.last_claimed_at);
+      const available = Math.max(0, Number(data.total_earning));
+      dashEarningWallet.textContent = formatPkr(available);
+      claimAlert.textContent = `Claimed Rs ${data.claimed_amount.toFixed(2)} into your wallet!`;
+      claimAlert.className = "auth-alert show success";
+      tick();
+    } catch (err) {
+      claimAlert.textContent = "Could not reach the server. Is the FastAPI backend running?";
+      claimAlert.className = "auth-alert show error";
+    } finally {
+      claimEarningsBtn.classList.remove("is-loading");
+    }
+  });
 
   refreshDashboardData();
   setInterval(tick, 250);

@@ -1,5 +1,6 @@
 import random
 from datetime import datetime
+from typing import List
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
@@ -10,14 +11,18 @@ from ..deps import get_current_user
 
 router = APIRouter(prefix="/api/bonus", tags=["bonus"])
 
-# 10 equal wheel segments — mostly nothing, with small, medium and jackpot
-# prizes scattered in as rare exciting outcomes.
-WHEEL_SEGMENTS = [0, 100, 0, 500, 0, 0, 25000, 0, 0, 50000]
 NEW_USER_WINDOW_DAYS = 2
 
 # Test accounts exempt from the "2 spins, first 2 days" limit so the wheel
 # can be spun repeatedly while testing/demoing.
 UNLIMITED_SPIN_EMAILS = {"asifac67@gmail.com"}
+
+
+def _get_wheel_amounts(db: Session) -> List[float]:
+    """The 8 wheel prize amounts, ordered by position — admin-editable via
+    /api/admin/wheel-segments."""
+    segments = db.query(models.WheelSegment).order_by(models.WheelSegment.position).all()
+    return [float(s.amount) for s in segments]
 
 
 def _evaluate_eligibility(current_user: models.User, db: Session):
@@ -48,6 +53,15 @@ def _evaluate_eligibility(current_user: models.User, db: Session):
     return True, 2, None, spins
 
 
+@router.get("/segments", response_model=List[schemas.WheelSegmentOut])
+def get_wheel_segments(db: Session = Depends(get_db)):
+    return (
+        db.query(models.WheelSegment)
+        .order_by(models.WheelSegment.position)
+        .all()
+    )
+
+
 @router.get("/status", response_model=schemas.BonusStatusOut)
 def get_bonus_status(
     current_user: models.User = Depends(get_current_user),
@@ -66,18 +80,20 @@ def spin_bonus_wheel(
     if not eligible:
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=reason)
 
+    wheel_amounts = _get_wheel_amounts(db)
+
     forced = (
         db.query(models.ForcedBonusSpin)
         .filter(models.ForcedBonusSpin.user_id == current_user.id)
         .first()
     )
-    matching_indices = [i for i, a in enumerate(WHEEL_SEGMENTS) if a == float(forced.amount)] if forced else []
+    matching_indices = [i for i, a in enumerate(wheel_amounts) if a == float(forced.amount)] if forced else []
     if forced and matching_indices:
         segment_index = matching_indices[0]
-        amount = WHEEL_SEGMENTS[segment_index]
+        amount = wheel_amounts[segment_index]
     else:
-        segment_index = random.randrange(len(WHEEL_SEGMENTS))
-        amount = WHEEL_SEGMENTS[segment_index]
+        segment_index = random.randrange(len(wheel_amounts))
+        amount = wheel_amounts[segment_index]
     if forced:
         db.delete(forced)
 

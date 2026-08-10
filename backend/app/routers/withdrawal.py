@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import func
@@ -11,22 +11,29 @@ from ..deps import get_current_user
 router = APIRouter(prefix="/api/withdrawals", tags=["withdrawals"])
 
 
-BONUS_WITHDRAWAL_GATE_AMOUNT = 500
-BONUS_WITHDRAWAL_REQUIRED_INVESTMENT = 50000
-
-
-def _requires_bonus_investment_gate(current_user: models.User, db: Session) -> bool:
-    """Users whose most recent daily-bonus win was above the small-prize tier
-    must invest a minimum amount before they can withdraw."""
+def _required_investment(current_user: models.User, db: Session) -> Optional[float]:
+    """Returns the investment amount still needed to unlock withdrawals, or
+    None if the user isn't gated (based on their most recent bonus win and
+    that prize's admin-configured required_investment on WheelSegment)."""
     latest_spin = (
         db.query(models.DailyBonusSpin)
         .filter(models.DailyBonusSpin.user_id == current_user.id)
         .order_by(models.DailyBonusSpin.spun_at.desc())
         .first()
     )
-    if not latest_spin or float(latest_spin.amount) <= BONUS_WITHDRAWAL_GATE_AMOUNT:
-        return False
-    return float(current_user.total_investment) < BONUS_WITHDRAWAL_REQUIRED_INVESTMENT
+    if not latest_spin:
+        return None
+
+    segment = (
+        db.query(models.WheelSegment)
+        .filter(models.WheelSegment.amount == latest_spin.amount)
+        .first()
+    )
+    if not segment or segment.required_investment is None:
+        return None
+
+    required = float(segment.required_investment)
+    return required if float(current_user.total_investment) < required else None
 
 
 def _available_balance(current_user: models.User, db: Session) -> float:
@@ -46,7 +53,8 @@ def check_withdrawal_eligibility(
     current_user: models.User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    return {"gated": _requires_bonus_investment_gate(current_user, db)}
+    required = _required_investment(current_user, db)
+    return {"gated": required is not None, "required_investment": required}
 
 
 @router.post("", response_model=schemas.WithdrawalOut, status_code=status.HTTP_201_CREATED)
@@ -55,10 +63,11 @@ def create_withdrawal(
     current_user: models.User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    if _requires_bonus_investment_gate(current_user, db):
+    required = _required_investment(current_user, db)
+    if required is not None:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="BONUS_INVESTMENT_REQUIRED",
+            detail={"code": "BONUS_INVESTMENT_REQUIRED", "required_investment": required},
         )
 
     available = _available_balance(current_user, db)

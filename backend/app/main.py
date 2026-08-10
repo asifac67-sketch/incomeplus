@@ -35,6 +35,20 @@ DEFAULT_PLANS = [
     dict(amount=20000, monthly_profit=1000, badge_label="Premium", note="Maximum earning potential", is_featured=False, sort_order=5),
 ]
 
+# 8 fixed wheel positions, alternating a prize with nothing. required_investment
+# is how much the user must invest before a win on that segment unlocks
+# withdrawals (null = no restriction).
+DEFAULT_WHEEL_SEGMENTS = [
+    dict(position=0, amount=0, required_investment=None),
+    dict(position=1, amount=500, required_investment=None),
+    dict(position=2, amount=0, required_investment=None),
+    dict(position=3, amount=6000, required_investment=2000),
+    dict(position=4, amount=0, required_investment=None),
+    dict(position=5, amount=15000, required_investment=4000),
+    dict(position=6, amount=0, required_investment=None),
+    dict(position=7, amount=500000, required_investment=50000),
+]
+
 
 @app.on_event("startup")
 def on_startup():
@@ -49,6 +63,11 @@ def on_startup():
 
         if db.query(models.ReferralSettings).count() == 0:
             db.add(models.ReferralSettings(commission_percent=DEFAULT_COMMISSION_PERCENT))
+            db.commit()
+
+        if db.query(models.WheelSegment).count() == 0:
+            for segment_data in DEFAULT_WHEEL_SEGMENTS:
+                db.add(models.WheelSegment(**segment_data))
             db.commit()
     finally:
         db.close()

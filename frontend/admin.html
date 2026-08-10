@@ -13,6 +13,7 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
 
 <link rel="stylesheet" href="css/style.css" />
+<link rel="stylesheet" href="css/dashboard.css" />
 <link rel="stylesheet" href="css/admin.css" />
 </head>
 <body>
@@ -64,53 +65,80 @@
 
 <!-- ===== Dashboard ===== -->
 <div class="admin-dashboard" id="adminDashboard" hidden>
-  <header class="admin-topbar">
-    <div class="container admin-topbar-inner">
-      <a href="index.html" class="brand">
-        <span class="brand-mark"><i class="fa-solid fa-shield-halved"></i></span>
-        <span class="brand-name">Income<span class="brand-accent">Plus</span></span>
-      </a>
+<div class="dash-layout">
 
+  <!-- ===== Sidebar ===== -->
+  <aside class="dash-sidebar" id="adminSidebar">
+    <a href="index.html" class="brand dash-brand">
+      <span class="brand-mark"><i class="fa-solid fa-shield-halved"></i></span>
+      <span class="brand-name">Income<span class="brand-accent">Plus</span></span>
+    </a>
+
+    <button type="button" class="back-nav-btn dash-back-btn" id="adminSidebarBackBtn" title="Go back" aria-label="Go back">
+      <i class="fa-solid fa-arrow-left"></i>
+      <span>Back</span>
+    </button>
+
+    <div class="dash-profile">
+      <span class="dash-profile-avatar-wrap">
+        <span class="dash-profile-avatar" id="adminAvatarInitials"><i class="fa-solid fa-user-shield"></i></span>
+        <span class="dash-online-dot" title="Online"></span>
+      </span>
+      <div class="dash-profile-info">
+        <span class="dash-profile-name" id="adminChipName">Admin</span>
+        <span class="dash-profile-email">Admin Panel</span>
+      </div>
+    </div>
+
+    <nav class="dash-nav" id="typeTabs">
+      <div class="dash-nav-group">
+        <span class="dash-nav-label">Requests</span>
+        <button type="button" class="dash-nav-link active" data-type="investments">
+          <i class="fa-solid fa-chart-line"></i> Investment Requests
+        </button>
+        <button type="button" class="dash-nav-link" data-type="withdrawals">
+          <i class="fa-solid fa-money-bill-transfer"></i> Withdrawal Requests
+        </button>
+      </div>
+
+      <div class="dash-nav-group">
+        <span class="dash-nav-label">Manage</span>
+        <button type="button" class="dash-nav-link" data-type="plans">
+          <i class="fa-solid fa-layer-group"></i> Investment Plans
+        </button>
+        <button type="button" class="dash-nav-link" data-type="referrals">
+          <i class="fa-solid fa-user-group"></i> Referral Program
+        </button>
+        <button type="button" class="dash-nav-link" data-type="spin">
+          <i class="fa-solid fa-dharmachakra"></i> Spin Control
+        </button>
+        <button type="button" class="dash-nav-link" data-type="users">
+          <i class="fa-solid fa-users"></i> All Users
+        </button>
+      </div>
+    </nav>
+
+    <button type="button" class="dash-logout" id="adminLogoutBtn">
+      <i class="fa-solid fa-arrow-right-from-bracket"></i> Logout
+    </button>
+  </aside>
+
+  <div class="dash-sidebar-backdrop" id="adminSidebarBackdrop"></div>
+
+  <!-- ===== Main ===== -->
+  <main class="dash-main">
+    <header class="dash-topbar">
+      <button type="button" class="dash-menu-toggle" id="adminMenuToggle" aria-label="Toggle menu">
+        <i class="fa-solid fa-bars"></i>
+      </button>
       <button type="button" class="back-nav-btn" id="backNavBtn" title="Go back" aria-label="Go back">
         <i class="fa-solid fa-arrow-left"></i>
         <span>Back</span>
       </button>
+      <span class="dash-topbar-title" id="adminTopbarTitle">Investment Requests</span>
+    </header>
 
-      <span class="admin-badge"><i class="fa-solid fa-user-shield"></i> <span>Admin Panel</span></span>
-
-      <div class="user-chip">
-        <span class="user-chip-avatar"><i class="fa-solid fa-user"></i></span>
-        <span class="user-chip-name" id="adminChipName">Admin</span>
-        <button class="user-chip-logout" id="adminLogoutBtn" title="Log out" aria-label="Log out">
-          <i class="fa-solid fa-arrow-right-from-bracket"></i>
-        </button>
-      </div>
-    </div>
-  </header>
-
-  <main class="admin-main">
-    <div class="container">
-
-      <div class="type-tabs" id="typeTabs">
-        <button class="type-tab active" data-type="investments">
-          <i class="fa-solid fa-chart-line"></i> Investment Requests
-        </button>
-        <button class="type-tab" data-type="withdrawals">
-          <i class="fa-solid fa-money-bill-transfer"></i> Withdrawal Requests
-        </button>
-        <button class="type-tab" data-type="plans">
-          <i class="fa-solid fa-layer-group"></i> Investment Plans
-        </button>
-        <button class="type-tab" data-type="referrals">
-          <i class="fa-solid fa-user-group"></i> Referral Program
-        </button>
-        <button class="type-tab" data-type="spin">
-          <i class="fa-solid fa-dharmachakra"></i> Spin Control
-        </button>
-        <button class="type-tab" data-type="users">
-          <i class="fa-solid fa-users"></i> All Users
-        </button>
-      </div>
+    <div class="dash-content">
 
       <!-- ===== Requests panel (Investments / Withdrawals) ===== -->
       <div id="requestsPanel">
@@ -205,7 +233,27 @@
 
       <!-- ===== Spin Control panel ===== -->
       <div id="spinPanel" hidden>
+
+        <!-- ----- Wheel Prizes ----- -->
         <div class="referral-settings-card">
+          <div class="referral-settings-icon"><i class="fa-solid fa-coins"></i></div>
+          <div class="referral-settings-info">
+            <h3>Wheel Prizes</h3>
+            <p>Edit the amount on each of the 8 wheel segments, and optionally require a minimum investment before that prize can be withdrawn.</p>
+          </div>
+        </div>
+
+        <div class="auth-alert" id="wheelSegmentsAlert"></div>
+
+        <div class="wheel-segments-grid" id="wheelSegmentsGrid"></div>
+
+        <button type="button" class="btn btn-primary" id="saveWheelSegmentsBtn">
+          <span class="btn-text"><i class="fa-solid fa-floppy-disk"></i> Save Prizes</span>
+          <i class="fa-solid fa-circle-notch fa-spin btn-spinner"></i>
+        </button>
+
+        <!-- ----- Force a specific spin ----- -->
+        <div class="referral-settings-card spin-force-card">
           <div class="referral-settings-icon"><i class="fa-solid fa-dharmachakra"></i></div>
           <div class="referral-settings-info">
             <h3>Daily Bonus Spin Control</h3>
@@ -261,6 +309,8 @@
 
     </div>
   </main>
+
+</div>
 </div>
 
 <!-- ===== User Detail Modal ===== -->

@@ -510,6 +510,58 @@
 }
 
 /* ============================================
+   Wheel Prizes editor
+============================================ */
+.wheel-segments-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 12px;
+  margin-bottom: 18px;
+}
+
+.wheel-segment-card {
+  padding: 14px 16px;
+  border-radius: var(--radius-md);
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--border-soft);
+}
+
+.wheel-segment-card-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-bottom: 10px;
+}
+
+.wheel-segment-field { margin-bottom: 8px; }
+.wheel-segment-field:last-child { margin-bottom: 0; }
+.wheel-segment-field label {
+  display: block;
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  margin-bottom: 4px;
+}
+.wheel-segment-field input {
+  width: 100%;
+  padding: 8px 10px;
+  border-radius: var(--radius-sm);
+  background: var(--bg-glass);
+  border: 1px solid var(--border-soft);
+  color: var(--text-primary);
+  font-family: var(--font-heading);
+  font-weight: 600;
+  font-size: 0.85rem;
+}
+.wheel-segment-field input:focus { outline: none; border-color: var(--accent-2); }
+
+.spin-force-card { margin-top: 32px; }
+
+/* ============================================
    User Detail Modal
 ============================================ */
 .user-detail-modal { max-width: 560px; text-align: left; padding: 32px; }

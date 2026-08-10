@@ -88,6 +88,33 @@ class InvestmentRequest(Base):
     user = relationship("User", back_populates="investment_requests")
 
 
+class EarningClaim(Base):
+    """Tracks when a user last claimed their accrued daily-investment-profit
+    into their real, withdrawable earning balance."""
+
+    __tablename__ = "earning_claims"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False, unique=True, index=True)
+    last_claimed_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+
+    user = relationship("User")
+
+
+class WheelSegment(Base):
+    """Admin-editable daily-bonus wheel prizes — 8 fixed positions (0-7).
+    required_investment (nullable) is how much the user must invest before
+    a win on that segment can be withdrawn; null/0 means no restriction."""
+
+    __tablename__ = "wheel_segments"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    position = Column(Integer, nullable=False, unique=True)
+    amount = Column(Numeric(12, 2), nullable=False)
+    required_investment = Column(Numeric(12, 2), nullable=True)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
+
+
 class DailyBonusSpin(Base):
     __tablename__ = "daily_bonus_spins"
 
