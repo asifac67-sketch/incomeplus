@@ -406,7 +406,7 @@
   font-size: 0.85rem;
 }
 
-.claim-earnings-btn:not(:disabled),
+.claim-earnings-btn,
 .earnings-status-actions .btn-primary,
 .earnings-status-actions .btn-outline {
   background: #2563eb;
