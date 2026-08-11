@@ -399,6 +399,27 @@
 .claim-earnings-btn.is-loading .btn-text { visibility: hidden; }
 .claim-earnings-btn.is-loading .btn-spinner { display: inline-block; position: absolute; }
 
+.claim-earnings-btn,
+.earnings-status-actions .btn {
+  padding: 12px 20px;
+  border-radius: 12px;
+  font-size: 0.85rem;
+}
+
+.claim-earnings-btn:not(:disabled),
+.earnings-status-actions .btn-primary,
+.earnings-status-actions .btn-outline {
+  background: #2563eb;
+  border-color: #2563eb;
+  color: #fff;
+  box-shadow: 0 8px 20px rgba(37, 99, 235, 0.4);
+}
+.earnings-status-actions .btn-outline:hover,
+.claim-earnings-btn:not(:disabled):hover {
+  background: #1d54d1;
+  box-shadow: 0 10px 24px rgba(37, 99, 235, 0.5);
+}
+
 .earnings-rate {
   display: inline-flex;
   align-items: center;
