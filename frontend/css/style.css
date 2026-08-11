@@ -596,18 +596,9 @@ ul { list-style: none; }
 .plan-card:hover::before { opacity: 1; }
 
 .plan-card.selected {
-  border-color: var(--accent-2);
   box-shadow: 0 0 0 3px rgba(0, 212, 255, 0.18), 0 16px 40px rgba(0, 212, 255, 0.15);
 }
 .plan-card.selected::before { opacity: 1; }
-
-.plan-card.featured {
-  border-color: rgba(255, 110, 199, 0.35);
-  background: linear-gradient(180deg, rgba(255, 110, 199, 0.08), rgba(108, 92, 231, 0.04));
-}
-.plan-card.featured::before {
-  background: radial-gradient(circle at 50% -10%, rgba(255, 110, 199, 0.24), transparent 60%);
-}
 
 .plan-badge {
   align-self: center;
@@ -625,12 +616,6 @@ ul { list-style: none; }
   border: 1px solid var(--border-soft);
 }
 
-.plan-card.featured .plan-badge {
-  background: var(--gradient-warm);
-  color: #fff;
-  border-color: transparent;
-}
-
 .plan-card-icon {
   width: 54px;
   height: 54px;
@@ -642,11 +627,6 @@ ul { list-style: none; }
   color: #fff;
   background: var(--gradient-primary);
   box-shadow: 0 8px 24px rgba(0, 212, 255, 0.35);
-}
-
-.plan-card.featured .plan-card-icon {
-  background: var(--gradient-warm);
-  box-shadow: 0 8px 24px rgba(255, 110, 199, 0.4);
 }
 
 .plan-price-block { display: flex; flex-direction: column; gap: 2px; }
@@ -669,11 +649,39 @@ ul { list-style: none; }
   color: transparent;
 }
 
-.plan-card.featured .plan-amount {
-  background: var(--gradient-warm);
-  -webkit-background-clip: text;
-  background-clip: text;
-}
+/* ----- Per-plan color themes ----- */
+.plan-card.plan-color-teal { border-color: rgba(46, 204, 113, 0.3); }
+.plan-card.plan-color-teal::before { background: radial-gradient(circle at 50% -10%, rgba(46, 204, 113, 0.22), transparent 60%); }
+.plan-card.plan-color-teal .plan-badge,
+.plan-card.plan-color-teal.selected { color: #2ecc71; }
+.plan-card.plan-color-teal.selected { border-color: #2ecc71; box-shadow: 0 0 0 3px rgba(46, 204, 113, 0.18), 0 16px 40px rgba(46, 204, 113, 0.15); }
+.plan-card.plan-color-teal .plan-card-icon { background: linear-gradient(135deg, #10ac84, #2ecc71); box-shadow: 0 8px 24px rgba(46, 204, 113, 0.4); }
+.plan-card.plan-color-teal .plan-amount { background: linear-gradient(135deg, #10ac84, #2ecc71); -webkit-background-clip: text; background-clip: text; }
+.plan-card.plan-color-teal .plan-choose-btn { background: linear-gradient(135deg, #10ac84, #2ecc71); box-shadow: 0 8px 20px rgba(46, 204, 113, 0.4); }
+
+.plan-card.plan-color-blue { border-color: rgba(37, 99, 235, 0.3); }
+.plan-card.plan-color-blue::before { background: radial-gradient(circle at 50% -10%, rgba(37, 99, 235, 0.22), transparent 60%); }
+.plan-card.plan-color-blue .plan-badge { color: #3b82f6; }
+.plan-card.plan-color-blue.selected { border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.18), 0 16px 40px rgba(37, 99, 235, 0.15); }
+.plan-card.plan-color-blue .plan-card-icon { background: linear-gradient(135deg, #2563eb, #3b82f6); box-shadow: 0 8px 24px rgba(37, 99, 235, 0.4); }
+.plan-card.plan-color-blue .plan-amount { background: linear-gradient(135deg, #2563eb, #3b82f6); -webkit-background-clip: text; background-clip: text; }
+.plan-card.plan-color-blue .plan-choose-btn { background: linear-gradient(135deg, #2563eb, #3b82f6); box-shadow: 0 8px 20px rgba(37, 99, 235, 0.4); }
+
+.plan-card.plan-color-purple { border-color: rgba(139, 92, 246, 0.3); }
+.plan-card.plan-color-purple::before { background: radial-gradient(circle at 50% -10%, rgba(139, 92, 246, 0.22), transparent 60%); }
+.plan-card.plan-color-purple .plan-badge { color: #a78bfa; }
+.plan-card.plan-color-purple.selected { border-color: #8b5cf6; box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.18), 0 16px 40px rgba(139, 92, 246, 0.15); }
+.plan-card.plan-color-purple .plan-card-icon { background: linear-gradient(135deg, #8b5cf6, #6c5ce7); box-shadow: 0 8px 24px rgba(139, 92, 246, 0.4); }
+.plan-card.plan-color-purple .plan-amount { background: linear-gradient(135deg, #8b5cf6, #6c5ce7); -webkit-background-clip: text; background-clip: text; }
+.plan-card.plan-color-purple .plan-choose-btn { background: linear-gradient(135deg, #8b5cf6, #6c5ce7); box-shadow: 0 8px 20px rgba(139, 92, 246, 0.4); }
+
+.plan-card.plan-color-pink { border-color: rgba(236, 72, 153, 0.3); }
+.plan-card.plan-color-pink::before { background: radial-gradient(circle at 50% -10%, rgba(236, 72, 153, 0.22), transparent 60%); }
+.plan-card.plan-color-pink .plan-badge { color: #ff9ad6; }
+.plan-card.plan-color-pink.selected { border-color: #ec4899; box-shadow: 0 0 0 3px rgba(236, 72, 153, 0.18), 0 16px 40px rgba(236, 72, 153, 0.15); }
+.plan-card.plan-color-pink .plan-card-icon { background: linear-gradient(135deg, #ec4899, #ff6ec7); box-shadow: 0 8px 24px rgba(236, 72, 153, 0.4); }
+.plan-card.plan-color-pink .plan-amount { background: linear-gradient(135deg, #ec4899, #ff6ec7); -webkit-background-clip: text; background-clip: text; }
+.plan-card.plan-color-pink .plan-choose-btn { background: linear-gradient(135deg, #ec4899, #ff6ec7); box-shadow: 0 8px 20px rgba(236, 72, 153, 0.4); }
 
 .plan-stats-list { display: flex; flex-direction: column; gap: 8px; }
 
@@ -717,19 +725,22 @@ ul { list-style: none; }
 }
 .plan-note i { color: var(--accent-success); }
 
-.plan-select-indicator {
-  display: none;
+.plan-choose-btn {
+  display: flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
-  padding: 9px;
-  border-radius: var(--radius-sm);
-  background: rgba(0, 212, 255, 0.14);
-  color: var(--accent-2);
-  font-size: 0.78rem;
+  width: 100%;
+  margin-top: 4px;
+  padding: 12px;
+  border-radius: 12px;
+  background: var(--gradient-primary);
+  color: #fff;
+  font-size: 0.82rem;
   font-weight: 700;
+  box-shadow: 0 8px 20px rgba(108, 92, 231, 0.35);
+  transition: transform 0.2s var(--ease), box-shadow 0.2s var(--ease);
 }
-.plan-card.selected .plan-select-indicator { display: flex; }
+.plan-card:hover .plan-choose-btn { transform: translateY(-1px); }
 
 .plan-disclaimer {
   display: flex;
@@ -2522,7 +2533,6 @@ ul { list-style: none; }
   .user-chip-name { max-width: 80px; }
   .invest-cta-inner { justify-content: center; text-align: center; }
   .invest-cta-inner .btn { width: 100%; }
-  .plan-grid { grid-template-columns: 1fr; }
   .plan-card.featured { grid-column: span 1; }
   .market-card { padding: 22px 18px 18px; }
   .market-stats { gap: 20px; }

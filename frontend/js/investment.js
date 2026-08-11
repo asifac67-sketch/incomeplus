@@ -82,11 +82,14 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
+    const PLAN_COLORS = ["teal", "blue", "purple", "pink"];
+
     planGrid.innerHTML = plans
-      .map((plan) => {
+      .map((plan, index) => {
         const daily = Math.round(plan.monthly_profit / 30);
+        const colorClass = `plan-color-${PLAN_COLORS[index % PLAN_COLORS.length]}`;
         return `
-          <button type="button" class="plan-card ${plan.is_featured ? "featured" : ""}" data-amount="${plan.amount}">
+          <button type="button" class="plan-card ${colorClass} ${plan.is_featured ? "featured" : ""}" data-amount="${plan.amount}">
             <span class="plan-badge"><i class="fa-solid fa-star"></i> ${escapeHtml(plan.badge_label)}</span>
 
             <div class="plan-card-icon"><i class="fa-solid fa-sack-dollar"></i></div>
@@ -115,7 +118,7 @@ document.addEventListener("DOMContentLoaded", () => {
             </div>
 
             <span class="plan-note"><i class="fa-solid fa-circle-check"></i> ${escapeHtml(plan.note)}</span>
-            <span class="plan-select-indicator"><i class="fa-solid fa-circle-check"></i> Selected</span>
+            <span class="plan-choose-btn">Choose Plan</span>
           </button>
         `;
       })
