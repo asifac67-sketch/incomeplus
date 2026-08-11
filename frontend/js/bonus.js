@@ -110,13 +110,13 @@ document.addEventListener("DOMContentLoaded", async () => {
     const token = window.RT?.getToken?.();
 
     if (!token) {
-      bonusSignupBtn.hidden = false;
+      if (bonusSignupBtn) bonusSignupBtn.hidden = false;
       spinBtn.disabled = true;
       hideMessage();
       return;
     }
 
-    bonusSignupBtn.hidden = true;
+    if (bonusSignupBtn) bonusSignupBtn.hidden = true;
 
     try {
       const res = await fetch(`${API_BASE_URL}/api/bonus/status`, {

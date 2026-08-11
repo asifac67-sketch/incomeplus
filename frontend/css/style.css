@@ -1346,6 +1346,22 @@ ul { list-style: none; }
   border-radius: var(--radius-lg);
 }
 
+.bonus-card-simple {
+  grid-template-columns: 1fr;
+  justify-items: center;
+  text-align: center;
+  padding: 36px 24px;
+}
+
+.bonus-simple-note {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--text-muted);
+  font-size: 0.85rem;
+}
+.bonus-simple-note i { color: var(--accent-2); }
+
 .bonus-badge { margin-bottom: 20px; }
 
 .bonus-info h2 {

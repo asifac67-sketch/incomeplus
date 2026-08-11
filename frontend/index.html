@@ -123,52 +123,12 @@
   </div>
 </section>
 
-<!-- ===== Invest Now CTA (below wallet overview) ===== -->
-<section class="invest-cta" id="investCta">
-  <div class="container">
-    <div class="invest-cta-inner">
-      <div class="invest-cta-icon"><i class="fa-solid fa-coins"></i></div>
-      <div class="invest-cta-text">
-        <span class="eyebrow">Start Growing</span>
-        <h3>Ready to invest? Choose a plan and get started in minutes.</h3>
-      </div>
-      <button class="btn btn-primary btn-lg" id="investNowBtn">
-        <i class="fa-solid fa-arrow-trend-up"></i>
-        <span>Invest Now</span>
-      </button>
-    </div>
-  </div>
-</section>
-
 <main id="home">
 
   <!-- ===== Daily Bonus Wheel ===== -->
   <section class="bonus-section" id="daily-bonus">
     <div class="container">
-      <div class="bonus-card glass-card">
-
-        <div class="bonus-info">
-          <span class="hero-badge bonus-badge">
-            <i class="fa-solid fa-gift"></i>
-            <span>New Member Reward</span>
-          </span>
-
-          <h2>Spin the Wheel, <span class="text-gradient">Win a Daily Bonus</span></h2>
-          <p>New members get one free spin today and one more tomorrow. Most spins land on <strong>Rs 500</strong> — try your luck!</p>
-
-          <ul class="bonus-points">
-            <li><i class="fa-solid fa-circle-check"></i> One spin on Day 1, one more on Day 2</li>
-            <li><i class="fa-solid fa-circle-check"></i> Winnings are added straight to your Total Earning</li>
-            <li><i class="fa-solid fa-circle-check"></i> Only for new members — so don't miss it</li>
-          </ul>
-
-          <button class="btn btn-primary btn-lg" id="bonusSignupBtn">
-            <i class="fa-solid fa-gift"></i>
-            <span>Sign Up to Spin</span>
-          </button>
-
-          <div class="bonus-status-message" id="bonusStatusMessage" hidden></div>
-        </div>
+      <div class="bonus-card glass-card bonus-card-simple">
 
         <div class="bonus-wheel-area">
           <div class="wheel-wrap">
@@ -186,130 +146,12 @@
             <i class="fa-solid fa-dharmachakra"></i>
             <span>Spin Now</span>
           </button>
+
+          <p class="bonus-simple-note"><i class="fa-solid fa-clock"></i> You get one spin every 24 hours.</p>
+
+          <div class="bonus-status-message" id="bonusStatusMessage" hidden></div>
         </div>
 
-      </div>
-    </div>
-  </section>
-
-  <!-- ===== Market / Platform Growth ===== -->
-  <section class="market-section" id="market">
-    <div class="container">
-      <div class="section-heading">
-        <span class="eyebrow">Real Growth</span>
-        <h2>Platform Investment Growth</h2>
-        <p>Total capital invested through IncomePlus, tracked month over month.</p>
-      </div>
-
-      <div class="market-card glass-card">
-        <div class="market-stats">
-          <div class="market-stat">
-            <span class="market-stat-label">Total Invested Volume</span>
-            <span class="market-stat-value" id="marketTotalVolume">Rs 0</span>
-          </div>
-          <div class="market-stat">
-            <span class="market-stat-label">Growth (12 months)</span>
-            <span class="market-stat-value market-stat-delta" id="marketGrowthDelta">+0%</span>
-          </div>
-          <div class="market-stat">
-            <span class="market-stat-label">Active Investors</span>
-            <span class="market-stat-value" id="marketInvestors">0</span>
-          </div>
-        </div>
-
-        <div class="market-chart-wrap">
-          <svg
-            class="market-chart"
-            id="marketChart"
-            viewBox="0 0 760 300"
-            preserveAspectRatio="none"
-            role="img"
-            aria-label="Line chart of IncomePlus's total platform investment volume over the last 12 months, trending upward"
-            tabindex="0"
-          ></svg>
-          <div class="market-tooltip" id="marketTooltip" hidden>
-            <span class="market-tooltip-month" id="marketTooltipMonth">Jan</span>
-            <strong class="market-tooltip-value" id="marketTooltipValue">Rs 0</strong>
-          </div>
-        </div>
-
-        <button type="button" class="market-table-toggle" id="marketTableToggle">
-          <i class="fa-solid fa-table"></i>
-          <span>View data as table</span>
-        </button>
-
-        <div class="market-table-wrap" id="marketTableWrap" hidden>
-          <table class="market-table">
-            <thead>
-              <tr><th>Month</th><th>Total Invested Volume</th></tr>
-            </thead>
-            <tbody id="marketTableBody"></tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- ===== How It Works (Protocol Flow) ===== -->
-  <section class="process-section" id="how-it-works">
-    <div class="container">
-      <div class="section-heading process-heading">
-        <span class="hero-badge process-badge">
-          <i class="fa-solid fa-diagram-project"></i>
-          <span>How It Works</span>
-        </span>
-        <h2>From Sign-Up to <span class="text-gradient">Payout</span></h2>
-        <p>Every rupee you invest is tracked, verified and paid out. Here's exactly what happens between signing up and your withdrawal.</p>
-      </div>
-
-      <div class="process-grid">
-        <div class="process-card">
-          <div class="process-card-top">
-            <div class="process-icon-wrap">
-              <div class="process-icon"><i class="fa-solid fa-user-plus"></i></div>
-              <span class="process-step-num">01</span>
-            </div>
-            <span class="process-step-label">Step 1/4</span>
-          </div>
-          <h3>Create Your Account</h3>
-          <p>Sign up as a user in seconds and secure your profile with a password — no paperwork, no waiting.</p>
-        </div>
-
-        <div class="process-card">
-          <div class="process-card-top">
-            <div class="process-icon-wrap">
-              <div class="process-icon"><i class="fa-solid fa-layer-group"></i></div>
-              <span class="process-step-num">02</span>
-            </div>
-            <span class="process-step-label">Step 2/4</span>
-          </div>
-          <h3>Choose a Plan</h3>
-          <p>Pick an investment plan that fits your budget, from Rs 2,000 up to Rs 20,000.</p>
-        </div>
-
-        <div class="process-card">
-          <div class="process-card-top">
-            <div class="process-icon-wrap">
-              <div class="process-icon"><i class="fa-solid fa-file-shield"></i></div>
-              <span class="process-step-num">03</span>
-            </div>
-            <span class="process-step-label">Step 3/4</span>
-          </div>
-          <h3>Send Payment &amp; Get Verified</h3>
-          <p>Transfer to our account, submit your transaction ID and screenshot — our team verifies and approves it.</p>
-        </div>
-
-        <div class="process-card">
-          <div class="process-card-top">
-            <div class="process-icon-wrap">
-              <div class="process-icon"><i class="fa-solid fa-money-bill-transfer"></i></div>
-              <span class="process-step-num">04</span>
-            </div>
-            <span class="process-step-label">Step 4/4</span>
-          </div>
-          <h3>Track, Earn &amp; Withdraw</h3>
-          <p>Watch your dashboard update in real time, then withdraw your earnings whenever you're ready.</p>
-        </div>
       </div>
     </div>
   </section>
