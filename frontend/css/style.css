@@ -710,9 +710,18 @@ ul { list-style: none; }
 .plan-stat-row.stat-daily .plan-stat-icon { background: rgba(46, 204, 113, 0.14); color: #6bf0a0; }
 .plan-stat-row.stat-total .plan-stat-icon { background: rgba(255, 180, 84, 0.16); color: #ffb454; }
 
-.plan-stat-label { flex: 1; font-size: 0.74rem; color: var(--text-muted); font-weight: 600; }
+.plan-stat-label {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.74rem;
+  color: var(--text-muted);
+  font-weight: 600;
+}
 
-.plan-stat-value { font-size: 0.82rem; font-weight: 700; color: var(--text-primary); white-space: nowrap; }
+.plan-stat-value { flex-shrink: 0; font-size: 0.82rem; font-weight: 700; color: var(--text-primary); white-space: nowrap; }
 .plan-stat-value small { font-weight: 600; font-size: 0.68rem; color: var(--text-muted); margin-left: 2px; }
 
 .plan-note {
@@ -2533,29 +2542,73 @@ ul { list-style: none; }
   .user-chip-name { max-width: 80px; }
   .invest-cta-inner { justify-content: center; text-align: center; }
   .invest-cta-inner .btn { width: 100%; }
+  #investmentOverlay .investment-modal { padding: 20px 6px 28px; }
+  .plan-grid { gap: 6px; }
   .plan-card.featured { grid-column: span 1; }
-  .plan-card { padding: 16px 10px 14px; gap: 8px; }
-  .plan-card-icon { width: 40px; height: 40px; font-size: 1rem; }
-  .plan-badge { padding: 4px 10px; font-size: 0.6rem; }
-  .plan-price-label { font-size: 0.58rem; }
-  .plan-amount { font-size: 1.2rem; white-space: nowrap; }
-  .plan-stats-list { gap: 6px; }
-  .plan-stat-row { padding: 6px 7px; gap: 5px; }
-  .plan-stat-icon { width: 20px; height: 20px; font-size: 0.6rem; }
-  .plan-stat-label { font-size: 0.6rem; white-space: nowrap; }
-  .plan-stat-value { font-size: 0.68rem; }
-  .plan-note { font-size: 0.64rem; }
-  .plan-choose-btn { padding: 9px; font-size: 0.74rem; }
+  .plan-card { padding: 14px 8px 12px; gap: 6px; }
+  .plan-card-icon { width: 36px; height: 36px; font-size: 0.9rem; margin-top: 0; }
+  .plan-badge { padding: 3px 9px; font-size: 0.58rem; }
+  .plan-price-label { font-size: 0.56rem; }
+  .plan-amount { font-size: 1.1rem; white-space: nowrap; }
+  .plan-stats-list { gap: 5px; }
+  .plan-stat-row { padding: 5px 6px; gap: 4px; }
+  .plan-stat-icon { width: 18px; height: 18px; font-size: 0.55rem; }
+  .plan-stat-label { font-size: 0.56rem; white-space: nowrap; }
+  .plan-stat-value { font-size: 0.62rem; }
+  .plan-note { font-size: 0.6rem; }
+  .plan-choose-btn { padding: 8px; font-size: 0.7rem; margin-top: 0; }
   .market-card { padding: 22px 18px 18px; }
   .market-stats { gap: 20px; }
   .market-stat-value { font-size: 1.25rem; }
 
-  .bonus-card { padding: 24px 18px; gap: 22px; border-radius: var(--radius-md); }
-  .bonus-badge { margin-bottom: 12px; }
-  .bonus-info h2 { font-size: 1.35rem; margin-bottom: 10px; }
-  .bonus-info > p { font-size: 0.85rem; margin-bottom: 16px; }
-  .bonus-points { gap: 8px; margin-bottom: 18px; }
-  .bonus-points li { font-size: 0.8rem; }
+  .bonus-card {
+    position: relative;
+    overflow: hidden;
+    padding: 26px 18px;
+    gap: 22px;
+    border-radius: var(--radius-lg);
+    border-color: rgba(255, 180, 84, 0.25);
+  }
+  .bonus-card::before {
+    content: "";
+    position: absolute;
+    top: -60px; left: 50%;
+    transform: translateX(-50%);
+    width: 240px; height: 240px;
+    background: radial-gradient(circle, rgba(255, 180, 84, 0.18), transparent 70%);
+    pointer-events: none;
+  }
+  .bonus-card > * { position: relative; z-index: 1; }
+
+  .bonus-badge {
+    margin-bottom: 14px;
+    box-shadow: 0 0 24px rgba(255, 180, 84, 0.22);
+  }
+  .bonus-info h2 { font-size: 1.4rem; margin-bottom: 10px; }
+  .bonus-info > p { font-size: 0.85rem; margin-bottom: 18px; }
+
+  .bonus-points { gap: 8px; margin-bottom: 20px; }
+  .bonus-points li {
+    gap: 10px;
+    padding: 10px 12px;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid var(--border-soft);
+    text-align: left;
+    font-size: 0.78rem;
+  }
+  .bonus-points i {
+    flex-shrink: 0;
+    width: 22px; height: 22px;
+    display: grid;
+    place-items: center;
+    border-radius: 50%;
+    background: rgba(46, 204, 113, 0.16);
+    font-size: 0.68rem;
+  }
+
+  #bonusSignupBtn { width: 100%; justify-content: center; }
+
   .bonus-wheel-area { gap: 18px; }
   .spin-now-btn { max-width: 220px; }
 }
