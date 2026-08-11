@@ -37,6 +37,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const userChip = document.getElementById("userChip");
   const userChipName = document.getElementById("userChipName");
   const logoutBtn = document.getElementById("logoutBtn");
+  const mobileLogoutBtn = document.getElementById("mobileLogoutBtn");
 
   const referredByNote = document.getElementById("referredByNote");
   const referralCodeFromUrl = new URLSearchParams(window.location.search).get("ref");
@@ -150,6 +151,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (authButtons) authButtons.hidden = true;
     if (userChip) userChip.hidden = false;
     if (userChipName) userChipName.textContent = user.full_name;
+    if (mobileLogoutBtn) mobileLogoutBtn.hidden = false;
 
     if (walletLocked) walletLocked.hidden = true;
     if (walletGrid) walletGrid.hidden = false;
@@ -165,6 +167,7 @@ document.addEventListener("DOMContentLoaded", () => {
   function showLoggedOutUI() {
     if (authButtons) authButtons.hidden = false;
     if (userChip) userChip.hidden = true;
+    if (mobileLogoutBtn) mobileLogoutBtn.hidden = true;
     if (walletLocked) walletLocked.hidden = false;
     if (walletGrid) walletGrid.hidden = true;
 
@@ -219,6 +222,15 @@ document.addEventListener("DOMContentLoaded", () => {
   logoutBtn?.addEventListener("click", () => {
     clearSession();
     showLoggedOutUI();
+  });
+
+  mobileLogoutBtn?.addEventListener("click", () => {
+    clearSession();
+    showLoggedOutUI();
+  });
+
+  document.getElementById("mobileBackBtn")?.addEventListener("click", () => {
+    window.history.back();
   });
 
   refreshUserUI();
