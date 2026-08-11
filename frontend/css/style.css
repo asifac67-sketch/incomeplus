@@ -2534,7 +2534,28 @@ ul { list-style: none; }
   .invest-cta-inner { justify-content: center; text-align: center; }
   .invest-cta-inner .btn { width: 100%; }
   .plan-card.featured { grid-column: span 1; }
+  .plan-card { padding: 16px 10px 14px; gap: 8px; }
+  .plan-card-icon { width: 40px; height: 40px; font-size: 1rem; }
+  .plan-badge { padding: 4px 10px; font-size: 0.6rem; }
+  .plan-price-label { font-size: 0.58rem; }
+  .plan-amount { font-size: 1.2rem; white-space: nowrap; }
+  .plan-stats-list { gap: 6px; }
+  .plan-stat-row { padding: 6px 7px; gap: 5px; }
+  .plan-stat-icon { width: 20px; height: 20px; font-size: 0.6rem; }
+  .plan-stat-label { font-size: 0.6rem; white-space: nowrap; }
+  .plan-stat-value { font-size: 0.68rem; }
+  .plan-note { font-size: 0.64rem; }
+  .plan-choose-btn { padding: 9px; font-size: 0.74rem; }
   .market-card { padding: 22px 18px 18px; }
   .market-stats { gap: 20px; }
   .market-stat-value { font-size: 1.25rem; }
+
+  .bonus-card { padding: 24px 18px; gap: 22px; border-radius: var(--radius-md); }
+  .bonus-badge { margin-bottom: 12px; }
+  .bonus-info h2 { font-size: 1.35rem; margin-bottom: 10px; }
+  .bonus-info > p { font-size: 0.85rem; margin-bottom: 16px; }
+  .bonus-points { gap: 8px; margin-bottom: 18px; }
+  .bonus-points li { font-size: 0.8rem; }
+  .bonus-wheel-area { gap: 18px; }
+  .spin-now-btn { max-width: 220px; }
 }
