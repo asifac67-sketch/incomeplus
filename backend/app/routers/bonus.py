@@ -1,5 +1,5 @@
 import random
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import List
 
 from fastapi import APIRouter, Depends, HTTPException, status
@@ -25,7 +25,15 @@ def _get_wheel_amounts(db: Session) -> List[float]:
     return [float(s.amount) for s in segments]
 
 
+def _next_utc_midnight() -> datetime:
+    tomorrow = datetime.utcnow().date() + timedelta(days=1)
+    return datetime.combine(tomorrow, datetime.min.time())
+
+
 def _evaluate_eligibility(current_user: models.User, db: Session):
+    """Returns (eligible, next_day_number, reason, spins, next_eligible_at) —
+    next_eligible_at is only set for the "already spun today" case, so the
+    frontend can render a live countdown to the exact next-spin moment."""
     spins = (
         db.query(models.DailyBonusSpin)
         .filter(models.DailyBonusSpin.user_id == current_user.id)
@@ -34,23 +42,23 @@ def _evaluate_eligibility(current_user: models.User, db: Session):
     )
 
     if current_user.email.lower() in UNLIMITED_SPIN_EMAILS:
-        return True, len(spins) + 1, None, spins
+        return True, len(spins) + 1, None, spins, None
 
     if len(spins) >= 2:
-        return False, None, "You've already claimed both of your daily bonus spins.", spins
+        return False, None, "You've already claimed both of your daily bonus spins.", spins, None
 
     account_age_days = (datetime.utcnow() - current_user.created_at).days
     if account_age_days > NEW_USER_WINDOW_DAYS:
-        return False, None, "The daily bonus wheel is only available to new members during their first 2 days.", spins
+        return False, None, "The daily bonus wheel is only available to new members during their first 2 days.", spins, None
 
     if len(spins) == 0:
-        return True, 1, None, spins
+        return True, 1, None, spins, None
 
     last_spin = spins[-1]
     if last_spin.spun_at.date() >= datetime.utcnow().date():
-        return False, None, "Come back tomorrow for your second bonus spin!", spins
+        return False, None, "Come back tomorrow for your second bonus spin!", spins, _next_utc_midnight()
 
-    return True, 2, None, spins
+    return True, 2, None, spins, None
 
 
 @router.get("/segments", response_model=List[schemas.WheelSegmentOut])
@@ -67,8 +75,14 @@ def get_bonus_status(
     current_user: models.User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    eligible, next_day_number, reason, spins = _evaluate_eligibility(current_user, db)
-    return schemas.BonusStatusOut(eligible=eligible, next_day_number=next_day_number, reason=reason, spins=spins)
+    eligible, next_day_number, reason, spins, next_eligible_at = _evaluate_eligibility(current_user, db)
+    return schemas.BonusStatusOut(
+        eligible=eligible,
+        next_day_number=next_day_number,
+        reason=reason,
+        spins=spins,
+        next_eligible_at=next_eligible_at,
+    )
 
 
 @router.post("/spin", response_model=schemas.BonusSpinResult)
@@ -76,7 +90,7 @@ def spin_bonus_wheel(
     current_user: models.User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    eligible, next_day_number, reason, _spins = _evaluate_eligibility(current_user, db)
+    eligible, next_day_number, reason, _spins, _next_eligible_at = _evaluate_eligibility(current_user, db)
     if not eligible:
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=reason)
 

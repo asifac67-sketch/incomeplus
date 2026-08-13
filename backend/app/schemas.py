@@ -151,6 +151,7 @@ class BonusStatusOut(BaseModel):
     next_day_number: Optional[int] = None
     reason: Optional[str] = None
     spins: List[BonusSpinOut] = []
+    next_eligible_at: Optional[datetime] = None
 
 
 class BonusSpinResult(BaseModel):

@@ -106,12 +106,46 @@ document.addEventListener("DOMContentLoaded", async () => {
     statusMessage.hidden = true;
   }
 
+  // ---------- Live countdown to the next available spin ----------
+  let countdownInterval = null;
+
+  function clearCountdown() {
+    if (countdownInterval) {
+      clearInterval(countdownInterval);
+      countdownInterval = null;
+    }
+  }
+
+  function startCountdown(targetIso) {
+    clearCountdown();
+    const target = new Date(targetIso.endsWith("Z") ? targetIso : `${targetIso}Z`);
+    const pad = (n) => String(n).padStart(2, "0");
+
+    function tick() {
+      const msLeft = target - new Date();
+      if (msLeft <= 0) {
+        clearCountdown();
+        refreshBonusState();
+        return;
+      }
+      const totalSeconds = Math.floor(msLeft / 1000);
+      const hrs = Math.floor(totalSeconds / 3600);
+      const mins = Math.floor((totalSeconds % 3600) / 60);
+      const secs = totalSeconds % 60;
+      showMessage(`Next spin unlocks in ${pad(hrs)}:${pad(mins)}:${pad(secs)}`);
+    }
+
+    tick();
+    countdownInterval = setInterval(tick, 1000);
+  }
+
   async function refreshBonusState() {
     const token = window.RT?.getToken?.();
 
     if (!token) {
       if (bonusSignupBtn) bonusSignupBtn.hidden = false;
       spinBtn.disabled = true;
+      clearCountdown();
       hideMessage();
       return;
     }
@@ -129,11 +163,17 @@ document.addEventListener("DOMContentLoaded", async () => {
       const data = await res.json();
 
       if (data.eligible) {
+        clearCountdown();
         spinBtn.disabled = false;
         showMessage(`Day ${data.next_day_number} bonus spin is ready — good luck!`, "success");
       } else {
         spinBtn.disabled = true;
-        showMessage(data.reason || "The daily bonus isn't available right now.");
+        if (data.next_eligible_at) {
+          startCountdown(data.next_eligible_at);
+        } else {
+          clearCountdown();
+          showMessage(data.reason || "The daily bonus isn't available right now.");
+        }
       }
     } catch (err) {
       spinBtn.disabled = true;
