@@ -105,7 +105,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function formatDate(isoString) {
-    return new Date(isoString).toLocaleDateString("en-US", { day: "numeric", month: "short", year: "numeric" });
+    return parseUtc(isoString).toLocaleDateString("en-US", { day: "numeric", month: "short", year: "numeric" });
   }
 
   function escapeHtml(str) {
@@ -470,7 +470,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function renderWallets(user) {
     dashTotalInvested.textContent = formatPkr(user.total_investment);
-    const available = Math.max(0, Number(user.total_earning) - Number(user.withdrawal_amount));
+    const pendingWithdrawals = withdrawals
+      .filter((w) => w.status === "pending")
+      .reduce((sum, w) => sum + Number(w.amount), 0);
+    const available = Math.max(0, Number(user.total_earning) - Number(user.withdrawal_amount) - pendingWithdrawals);
     dashEarningWallet.textContent = formatPkr(available);
   }
 
@@ -642,12 +645,12 @@ document.addEventListener("DOMContentLoaded", () => {
         return;
       }
 
-      claimBaselineAt = parseUtc(data.last_claimed_at);
-      const available = Math.max(0, Number(data.total_earning));
-      dashEarningWallet.textContent = formatPkr(available);
       claimAlert.textContent = `Claimed Rs ${data.claimed_amount.toFixed(2)} into your wallet!`;
       claimAlert.className = "auth-alert show success";
-      tick();
+      // Re-pull full user/withdrawal state instead of hand-computing the wallet
+      // balance here, so it's subtracted the same complete way renderWallets()
+      // does (withdrawal_amount + pending withdrawals), not just total_earning.
+      await refreshDashboardData();
     } catch (err) {
       claimAlert.textContent = "Could not reach the server. Is the FastAPI backend running?";
       claimAlert.className = "auth-alert show error";

@@ -369,6 +369,7 @@ ul { list-style: none; }
 .wallet-section {
   padding: calc(var(--header-h) + 28px) 0 0;
   position: relative;
+  scroll-margin-top: var(--header-h);
 }
 
 .wallet-locked {

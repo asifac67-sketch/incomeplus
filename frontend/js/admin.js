@@ -146,7 +146,10 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function formatDate(isoString) {
-    return new Date(isoString).toLocaleString("en-US", {
+    // Backend timestamps are naive UTC (no offset) — append "Z" so the
+    // browser parses them as UTC instead of assuming local time.
+    const iso = isoString && !/[Zz]|[+-]\d{2}:\d{2}$/.test(isoString) ? `${isoString}Z` : isoString;
+    return new Date(iso).toLocaleString("en-US", {
       day: "numeric",
       month: "short",
       year: "numeric",

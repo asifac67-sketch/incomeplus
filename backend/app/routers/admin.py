@@ -9,6 +9,7 @@ from sqlalchemy.orm import Session, joinedload
 from .. import models, schemas
 from ..database import get_db
 from ..deps import get_current_admin
+from .investment import _daily_rate, _get_or_create_claim
 
 router = APIRouter(prefix="/api/admin", tags=["admin"])
 
@@ -19,7 +20,10 @@ def _get_pending_record(model_cls, record_id: str, db: Session, label: str):
     except ValueError:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"Invalid {label} ID.")
 
-    record = db.query(model_cls).filter(model_cls.id == parsed_id).first()
+    # Lock the row so two concurrent approve/reject calls for the same
+    # request (double-click, two admin tabs) can't both see it as pending —
+    # the second waits here until the first's transaction commits.
+    record = db.query(model_cls).filter(model_cls.id == parsed_id).with_for_update().first()
     if not record:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"{label.capitalize()} request not found.")
     if record.status != models.InvestmentStatus.pending:
@@ -52,14 +56,27 @@ def approve_investment(
 ):
     investment = _get_pending_record(models.InvestmentRequest, investment_id, db, "investment")
 
+    investor = db.query(models.User).filter(models.User.id == investment.user_id).with_for_update().first()
+
+    # Settle whatever's already claimable at the investor's pre-approval daily
+    # rate before this investment's rate kicks in, so the backlog time isn't
+    # retroactively billed at the new (higher) rate once approved.
+    old_rate = _daily_rate(investor, db)
+    claim = _get_or_create_claim(investor, db)
+    now = datetime.utcnow()
+    elapsed_seconds = max(0, (now - claim.last_claimed_at).total_seconds())
+    settle_amount = round((old_rate / 86400) * elapsed_seconds, 6)
+    if settle_amount > 0:
+        investor.total_earning = float(investor.total_earning) + settle_amount
+    claim.last_claimed_at = now
+
     investment.status = models.InvestmentStatus.approved
     investment.reviewed_at = datetime.utcnow()
 
-    investor = db.query(models.User).filter(models.User.id == investment.user_id).first()
     investor.total_investment = float(investor.total_investment) + float(investment.amount)
 
     if investor.referred_by_id:
-        referrer = db.query(models.User).filter(models.User.id == investor.referred_by_id).first()
+        referrer = db.query(models.User).filter(models.User.id == investor.referred_by_id).with_for_update().first()
         if referrer:
             settings = get_or_create_referral_settings(db)
             percent = float(settings.commission_percent)
@@ -120,10 +137,10 @@ def approve_withdrawal(
 ):
     withdrawal = _get_pending_record(models.WithdrawalRequest, withdrawal_id, db, "withdrawal")
 
+    investor = db.query(models.User).filter(models.User.id == withdrawal.user_id).with_for_update().first()
+
     withdrawal.status = models.InvestmentStatus.approved
     withdrawal.reviewed_at = datetime.utcnow()
-
-    investor = db.query(models.User).filter(models.User.id == withdrawal.user_id).first()
     investor.withdrawal_amount = float(investor.withdrawal_amount) + float(withdrawal.amount)
 
     db.commit()

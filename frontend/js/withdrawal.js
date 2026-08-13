@@ -71,12 +71,13 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
+    let gateData = null;
     try {
       const gateRes = await fetch(`${API_BASE_URL}/api/withdrawals/eligibility`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       if (gateRes.ok) {
-        const gateData = await gateRes.json();
+        gateData = await gateRes.json();
         if (gateData.gated) {
           openInvestRequiredModal(gateData.required_investment);
           return;
@@ -91,17 +92,17 @@ document.addEventListener("DOMContentLoaded", () => {
     overlay.classList.add("open");
     document.body.style.overflow = "hidden";
 
-    try {
-      const res = await fetch(`${API_BASE_URL}/api/auth/me`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      if (res.ok) {
-        const user = await res.json();
-        availableBalance = Math.max(0, Number(user.total_earning) - Number(user.withdrawal_amount));
-        availableText.textContent = formatPkr(availableBalance);
-      }
-    } catch (err) {
-      availableText.textContent = "Rs 0";
+    if (gateData) {
+      // available_balance already excludes pending withdrawal requests, so a
+      // second request can't be submitted against funds already tied up.
+      availableBalance = Math.max(0, Number(gateData.available_balance) || 0);
+      availableText.textContent = formatPkr(availableBalance);
+    } else {
+      // The eligibility fetch failed — don't force the balance to Rs 0 and
+      // block a legitimate withdrawal. Let the user submit; the backend's
+      // own balance check at submit time still protects against overdraw.
+      availableBalance = Infinity;
+      availableText.textContent = "—";
     }
   }
 
@@ -230,7 +231,10 @@ document.addEventListener("DOMContentLoaded", () => {
   };
 
   function formatDate(isoString) {
-    return new Date(isoString).toLocaleDateString("en-US", { day: "numeric", month: "short", year: "numeric" });
+    // Backend timestamps are naive UTC (no offset) — append "Z" so the
+    // browser parses them as UTC instead of assuming local time.
+    const iso = isoString && !/[Zz]|[+-]\d{2}:\d{2}$/.test(isoString) ? `${isoString}Z` : isoString;
+    return new Date(iso).toLocaleDateString("en-US", { day: "numeric", month: "short", year: "numeric" });
   }
 
   function escapeHtml(str) {

@@ -119,6 +119,16 @@ def claim_earnings(
         )
 
     claim = _get_or_create_claim(current_user, db)
+    # Lock the claim row and the user row for the rest of the transaction so
+    # two concurrent claim requests can't both read the same last_claimed_at
+    # / total_earning and both pay out the same elapsed window — the second
+    # waits here until the first commits, then sees the up-to-date values.
+    claim = (
+        db.query(models.EarningClaim).filter(models.EarningClaim.id == claim.id).with_for_update().first()
+    )
+    locked_user = (
+        db.query(models.User).filter(models.User.id == current_user.id).with_for_update().first()
+    )
     now = datetime.utcnow()
     elapsed_seconds = max(0, (now - claim.last_claimed_at).total_seconds())
     claimable = round((daily_rate / 86400) * elapsed_seconds, 6)
@@ -129,13 +139,13 @@ def claim_earnings(
             detail="Nothing to claim yet — check back soon.",
         )
 
-    current_user.total_earning = float(current_user.total_earning) + claimable
+    locked_user.total_earning = float(locked_user.total_earning) + claimable
     claim.last_claimed_at = now
     db.commit()
-    db.refresh(current_user)
+    db.refresh(locked_user)
 
     return schemas.EarningClaimResult(
         claimed_amount=claimable,
-        total_earning=float(current_user.total_earning),
+        total_earning=float(locked_user.total_earning),
         last_claimed_at=claim.last_claimed_at,
     )
