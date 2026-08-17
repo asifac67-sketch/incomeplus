@@ -1789,6 +1789,12 @@ ul { list-style: none; }
   margin-bottom: 22px;
 }
 
+.claim-result-note {
+  font-style: italic;
+  font-size: 0.95rem;
+  color: #6bf0a0;
+}
+
 /* ============================================
    Market / Platform Growth
 ============================================ */

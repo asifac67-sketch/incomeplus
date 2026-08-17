@@ -698,6 +698,25 @@
   </div>
 </div>
 
+<!-- ===== Claim Success ===== -->
+<div class="confetti-container" id="claimConfettiContainer" aria-hidden="true"></div>
+
+<div class="modal-overlay" id="claimResultOverlay">
+  <div class="auth-modal bonus-result-modal" role="dialog" aria-modal="true" aria-labelledby="claimResultTitle">
+    <button class="modal-close" id="claimResultClose" aria-label="Close">
+      <i class="fa-solid fa-xmark"></i>
+    </button>
+
+    <div class="bonus-result-icon"><i class="fa-solid fa-check"></i></div>
+    <h2 id="claimResultTitle">Congratulations!</h2>
+    <p class="bonus-result-lead">You have successfully claimed</p>
+    <div class="bonus-result-amount" id="claimResultAmount">Rs 0</div>
+    <p class="bonus-result-note claim-result-note">into your wallet</p>
+
+    <button type="button" class="btn btn-primary btn-block" id="claimResultDoneBtn">Awesome! Let's Go <i class="fa-solid fa-rocket"></i></button>
+  </div>
+</div>
+
 <script src="js/dashboard.js"></script>
 <script src="js/investment.js"></script>
 <script src="js/withdrawal.js"></script>

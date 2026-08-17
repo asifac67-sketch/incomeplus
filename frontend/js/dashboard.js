@@ -51,6 +51,12 @@ document.addEventListener("DOMContentLoaded", () => {
   const claimEarningsBtn = document.getElementById("claimEarningsBtn");
   const claimAlert = document.getElementById("claimAlert");
 
+  const claimResultOverlay = document.getElementById("claimResultOverlay");
+  const claimResultClose = document.getElementById("claimResultClose");
+  const claimResultDoneBtn = document.getElementById("claimResultDoneBtn");
+  const claimResultAmount = document.getElementById("claimResultAmount");
+  const claimConfettiContainer = document.getElementById("claimConfettiContainer");
+
   const dashTotalInvested = document.getElementById("dashTotalInvested");
   const dashEarningWallet = document.getElementById("dashEarningWallet");
 
@@ -624,6 +630,79 @@ document.addEventListener("DOMContentLoaded", () => {
   document.getElementById("investDoneBtn")?.addEventListener("click", refreshDashboardData);
   document.getElementById("withdrawDoneBtn")?.addEventListener("click", refreshDashboardData);
 
+  // ---------- Claim success popup: confetti + a soft chime ----------
+  const CLAIM_CONFETTI_COLORS = ["#6bf0a0", "#00d4ff", "#ffd166", "#6c5ce7"];
+
+  function launchClaimConfetti() {
+    if (!claimConfettiContainer) return;
+    for (let i = 0; i < 50; i++) {
+      const piece = document.createElement("span");
+      piece.className = "confetti-piece";
+      piece.style.background = CLAIM_CONFETTI_COLORS[Math.floor(Math.random() * CLAIM_CONFETTI_COLORS.length)];
+      piece.style.left = `${Math.random() * 100}%`;
+      piece.style.borderRadius = Math.random() > 0.5 ? "50%" : "2px";
+      piece.style.setProperty("--drift", `${(Math.random() - 0.5) * 200}px`);
+      piece.style.setProperty("--spin", `${360 * (2 + Math.random() * 3)}deg`);
+
+      const duration = 2.2 + Math.random() * 1.2;
+      piece.style.animationDuration = `${duration}s`;
+      piece.style.animationDelay = `${Math.random() * 0.3}s`;
+
+      claimConfettiContainer.appendChild(piece);
+      setTimeout(() => piece.remove(), (duration + 1) * 1000);
+    }
+  }
+
+  function playClaimSound() {
+    try {
+      const AudioCtx = window.AudioContext || window.webkitAudioContext;
+      if (!AudioCtx) return;
+      const ctx = new AudioCtx();
+      const notes = [783.99, 1046.5]; // short two-note chime, softer than the spin-win sound
+
+      notes.forEach((freq, i) => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = "triangle";
+        osc.frequency.value = freq;
+
+        const startTime = ctx.currentTime + i * 0.09;
+        gain.gain.setValueAtTime(0, startTime);
+        gain.gain.linearRampToValueAtTime(0.14, startTime + 0.02);
+        gain.gain.exponentialRampToValueAtTime(0.001, startTime + 0.25);
+
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start(startTime);
+        osc.stop(startTime + 0.3);
+      });
+
+      setTimeout(() => ctx.close(), 800);
+    } catch (err) {
+      // Audio blocked/unavailable — the popup still shows.
+    }
+  }
+
+  function openClaimResultModal(amount) {
+    if (!claimResultOverlay) return;
+    claimResultAmount.textContent = formatPkr(amount.toFixed(2));
+    claimResultOverlay.classList.add("open");
+    document.body.style.overflow = "hidden";
+    launchClaimConfetti();
+    playClaimSound();
+  }
+
+  function closeClaimResultModal() {
+    claimResultOverlay?.classList.remove("open");
+    document.body.style.overflow = "";
+  }
+
+  claimResultClose?.addEventListener("click", closeClaimResultModal);
+  claimResultDoneBtn?.addEventListener("click", closeClaimResultModal);
+  claimResultOverlay?.addEventListener("click", (e) => {
+    if (e.target === claimResultOverlay) closeClaimResultModal();
+  });
+
   // ---------- Claim accrued earnings into the real wallet ----------
   claimEarningsBtn?.addEventListener("click", async () => {
     claimAlert.className = "auth-alert";
@@ -645,8 +724,7 @@ document.addEventListener("DOMContentLoaded", () => {
         return;
       }
 
-      claimAlert.textContent = `Claimed Rs ${data.claimed_amount.toFixed(2)} into your wallet!`;
-      claimAlert.className = "auth-alert show success";
+      openClaimResultModal(data.claimed_amount);
       // Re-pull full user/withdrawal state instead of hand-computing the wallet
       // balance here, so it's subtracted the same complete way renderWallets()
       // does (withdrawal_amount + pending withdrawals), not just total_earning.
