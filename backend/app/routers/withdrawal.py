@@ -14,7 +14,11 @@ router = APIRouter(prefix="/api/withdrawals", tags=["withdrawals"])
 def _required_investment(current_user: models.User, db: Session) -> Optional[float]:
     """Returns the investment amount still needed to unlock withdrawals, or
     None if the user isn't gated (based on their most recent bonus win and
-    that prize's admin-configured required_investment on WheelSegment)."""
+    that prize's admin-configured required_investment on WheelSegment).
+
+    Investment made before the win doesn't count — only investment approved
+    after this specific spin clears its gate, so a big-balance user can't
+    coast past every future win on investing they already did long ago."""
     latest_spin = (
         db.query(models.DailyBonusSpin)
         .filter(models.DailyBonusSpin.user_id == current_user.id)
@@ -33,7 +37,18 @@ def _required_investment(current_user: models.User, db: Session) -> Optional[flo
         return None
 
     required = float(segment.required_investment)
-    return required if float(current_user.total_investment) < required else None
+
+    invested_since_win = (
+        db.query(func.coalesce(func.sum(models.InvestmentRequest.amount), 0))
+        .filter(
+            models.InvestmentRequest.user_id == current_user.id,
+            models.InvestmentRequest.status == models.InvestmentStatus.approved,
+            models.InvestmentRequest.created_at >= latest_spin.spun_at,
+        )
+        .scalar()
+    )
+
+    return required if float(invested_since_win) < required else None
 
 
 def _available_balance(current_user: models.User, db: Session) -> float:
