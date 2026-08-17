@@ -17,8 +17,10 @@ def _required_investment(current_user: models.User, db: Session) -> Optional[flo
     that prize's admin-configured required_investment on WheelSegment).
 
     Investment made before the win doesn't count — only investment approved
-    after this specific spin clears its gate, so a big-balance user can't
-    coast past every future win on investing they already did long ago."""
+    after this specific spin can clear its gate, so a big-balance user can't
+    coast past every future win on investing they already did long ago. The
+    matching investment must be for exactly the required amount (not merely
+    "at least"), matching how each amount corresponds to one fixed plan."""
     latest_spin = (
         db.query(models.DailyBonusSpin)
         .filter(models.DailyBonusSpin.user_id == current_user.id)
@@ -36,19 +38,18 @@ def _required_investment(current_user: models.User, db: Session) -> Optional[flo
     if not segment or segment.required_investment is None:
         return None
 
-    required = float(segment.required_investment)
-
-    invested_since_win = (
-        db.query(func.coalesce(func.sum(models.InvestmentRequest.amount), 0))
+    matching_investment = (
+        db.query(models.InvestmentRequest)
         .filter(
             models.InvestmentRequest.user_id == current_user.id,
             models.InvestmentRequest.status == models.InvestmentStatus.approved,
             models.InvestmentRequest.created_at >= latest_spin.spun_at,
+            models.InvestmentRequest.amount == segment.required_investment,
         )
-        .scalar()
+        .first()
     )
 
-    return required if float(invested_since_win) < required else None
+    return None if matching_investment else float(segment.required_investment)
 
 
 def _available_balance(current_user: models.User, db: Session) -> float:
