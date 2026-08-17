@@ -13,34 +13,27 @@ router = APIRouter(prefix="/api/withdrawals", tags=["withdrawals"])
 
 def _required_investment(current_user: models.User, db: Session) -> Optional[float]:
     """Returns the investment amount still needed to unlock withdrawals, or
-    None if the user isn't gated.
-
-    Looks at EVERY spin the user has ever had (not just the latest — a small
-    later win must not erase a still-unmet requirement from an earlier big
-    win), and joins on the spin's stable segment_index/position rather than
-    the admin-editable amount, so rebalancing wheel prizes later can't
-    silently change or erase a gate that's already in effect for a user."""
-    spins = (
+    None if the user isn't gated (based on their most recent bonus win and
+    that prize's admin-configured required_investment on WheelSegment)."""
+    latest_spin = (
         db.query(models.DailyBonusSpin)
         .filter(models.DailyBonusSpin.user_id == current_user.id)
-        .all()
+        .order_by(models.DailyBonusSpin.spun_at.desc())
+        .first()
     )
-    if not spins:
+    if not latest_spin:
         return None
 
-    positions = {s.segment_index for s in spins}
-    segments = (
+    segment = (
         db.query(models.WheelSegment)
-        .filter(models.WheelSegment.position.in_(positions))
-        .all()
+        .filter(models.WheelSegment.amount == latest_spin.amount)
+        .first()
     )
-
-    required_values = [float(s.required_investment) for s in segments if s.required_investment is not None]
-    if not required_values:
+    if not segment or segment.required_investment is None:
         return None
 
-    highest_required = max(required_values)
-    return highest_required if float(current_user.total_investment) < highest_required else None
+    required = float(segment.required_investment)
+    return required if float(current_user.total_investment) < required else None
 
 
 def _available_balance(current_user: models.User, db: Session) -> float:
