@@ -11,10 +11,11 @@ from ..deps import get_current_user
 
 router = APIRouter(prefix="/api/bonus", tags=["bonus"])
 
-NEW_USER_WINDOW_DAYS = 2
+# One spin every rolling 24 hours, indefinitely — not just for new users.
+SPIN_COOLDOWN_HOURS = 24
 
-# Test accounts exempt from the "2 spins, first 2 days" limit so the wheel
-# can be spun repeatedly while testing/demoing.
+# Test accounts exempt from the daily cooldown so the wheel can be spun
+# repeatedly while testing/demoing.
 UNLIMITED_SPIN_EMAILS = {"asifac67@gmail.com"}
 
 
@@ -25,40 +26,29 @@ def _get_wheel_amounts(db: Session) -> List[float]:
     return [float(s.amount) for s in segments]
 
 
-def _next_utc_midnight() -> datetime:
-    tomorrow = datetime.utcnow().date() + timedelta(days=1)
-    return datetime.combine(tomorrow, datetime.min.time())
-
-
 def _evaluate_eligibility(current_user: models.User, db: Session):
     """Returns (eligible, next_day_number, reason, spins, next_eligible_at) —
-    next_eligible_at is only set for the "already spun today" case, so the
-    frontend can render a live countdown to the exact next-spin moment."""
+    next_eligible_at is only set for the "already spun, on cooldown" case, so
+    the frontend can render a live countdown to the exact next-spin moment."""
     spins = (
         db.query(models.DailyBonusSpin)
         .filter(models.DailyBonusSpin.user_id == current_user.id)
-        .order_by(models.DailyBonusSpin.day_number)
+        .order_by(models.DailyBonusSpin.spun_at)
         .all()
     )
 
     if current_user.email.lower() in UNLIMITED_SPIN_EMAILS:
         return True, len(spins) + 1, None, spins, None
 
-    if len(spins) >= 2:
-        return False, None, "You've already claimed both of your daily bonus spins.", spins, None
-
-    account_age_days = (datetime.utcnow() - current_user.created_at).days
-    if account_age_days > NEW_USER_WINDOW_DAYS:
-        return False, None, "The daily bonus wheel is only available to new members during their first 2 days.", spins, None
-
-    if len(spins) == 0:
+    if not spins:
         return True, 1, None, spins, None
 
     last_spin = spins[-1]
-    if last_spin.spun_at.date() >= datetime.utcnow().date():
-        return False, None, "Come back tomorrow for your second bonus spin!", spins, _next_utc_midnight()
+    next_eligible_at = last_spin.spun_at + timedelta(hours=SPIN_COOLDOWN_HOURS)
+    if datetime.utcnow() < next_eligible_at:
+        return False, None, "Come back tomorrow for your next bonus spin!", spins, next_eligible_at
 
-    return True, 2, None, spins, None
+    return True, len(spins) + 1, None, spins, None
 
 
 @router.get("/segments", response_model=List[schemas.WheelSegmentOut])
