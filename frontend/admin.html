@@ -466,6 +466,49 @@
   </div>
 </div>
 
+<!-- ===== Reject Reason Modal ===== -->
+<div class="modal-overlay" id="rejectModalOverlay">
+  <div class="auth-modal" role="dialog" aria-modal="true" aria-labelledby="rejectModalTitle">
+    <button class="modal-close" id="rejectModalClose" aria-label="Close">
+      <i class="fa-solid fa-xmark"></i>
+    </button>
+
+    <div class="auth-modal-header">
+      <span class="brand-mark"><i class="fa-solid fa-circle-xmark"></i></span>
+      <h2 id="rejectModalTitle">Reject Payment</h2>
+      <p>The reason and message below are shown to the user on their Transactions page.</p>
+    </div>
+
+    <div class="auth-alert" id="rejectFormAlert"></div>
+
+    <form id="rejectForm">
+      <div class="form-group">
+        <label for="rejectReason">Rejection Reason</label>
+        <div class="input-wrap">
+          <i class="fa-solid fa-circle-exclamation"></i>
+          <select id="rejectReason">
+            <option value="Payment screenshot unclear">Payment screenshot unclear</option>
+            <option value="Amount does not match">Amount does not match</option>
+            <option value="Invalid transaction ID">Invalid transaction ID</option>
+            <option value="Duplicate submission">Duplicate submission</option>
+            <option value="Other">Other</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="rejectMessage">Message (shown to user)</label>
+        <textarea id="rejectMessage" rows="3" maxlength="500" placeholder="e.g. Your payment proof isn't clear. Please re-submit the original screenshot."></textarea>
+      </div>
+
+      <button type="submit" class="btn btn-primary btn-block" id="rejectSubmitBtn">
+        <span class="btn-text"><i class="fa-solid fa-xmark"></i> Reject Payment</span>
+        <i class="fa-solid fa-circle-notch fa-spin btn-spinner"></i>
+      </button>
+    </form>
+  </div>
+</div>
+
 <!-- ===== Screenshot lightbox ===== -->
 <div class="lightbox-overlay" id="lightboxOverlay">
   <button class="modal-close lightbox-close" id="lightboxClose" aria-label="Close">

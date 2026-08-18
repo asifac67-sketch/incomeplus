@@ -119,9 +119,16 @@ class InvestmentOut(BaseModel):
     status: InvestmentStatus
     created_at: datetime
     reviewed_at: Optional[datetime] = None
+    rejection_reason: Optional[str] = None
+    admin_message: Optional[str] = None
 
     class Config:
         from_attributes = True
+
+
+class RejectionInput(BaseModel):
+    reason: Optional[str] = None
+    message: Optional[str] = None
 
 
 class InvestorInfo(BaseModel):
@@ -175,6 +182,8 @@ class WithdrawalOut(BaseModel):
     status: InvestmentStatus
     created_at: datetime
     reviewed_at: Optional[datetime] = None
+    rejection_reason: Optional[str] = None
+    admin_message: Optional[str] = None
 
     class Config:
         from_attributes = True

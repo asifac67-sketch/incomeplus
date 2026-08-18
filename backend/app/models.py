@@ -2,7 +2,7 @@ import enum
 import uuid
 from datetime import datetime
 
-from sqlalchemy import Column, String, DateTime, Enum, Boolean, Numeric, ForeignKey, Integer
+from sqlalchemy import Column, String, DateTime, Enum, Boolean, Numeric, ForeignKey, Integer, Text
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 
@@ -84,6 +84,8 @@ class InvestmentRequest(Base):
     status = Column(Enum(InvestmentStatus), default=InvestmentStatus.pending, nullable=False)
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
     reviewed_at = Column(DateTime, nullable=True)
+    rejection_reason = Column(String(255), nullable=True)
+    admin_message = Column(Text, nullable=True)
 
     user = relationship("User", back_populates="investment_requests")
 
@@ -177,5 +179,7 @@ class WithdrawalRequest(Base):
     status = Column(Enum(InvestmentStatus), default=InvestmentStatus.pending, nullable=False)
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
     reviewed_at = Column(DateTime, nullable=True)
+    rejection_reason = Column(String(255), nullable=True)
+    admin_message = Column(Text, nullable=True)
 
     user = relationship("User", back_populates="withdrawal_requests")

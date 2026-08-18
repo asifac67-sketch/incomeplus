@@ -508,6 +508,20 @@ document.addEventListener("DOMContentLoaded", () => {
     rejected: { label: "Rejected", icon: "fa-circle-xmark" },
   };
 
+  function renderRejectionNote(item) {
+    if (item.status !== "rejected" || (!item.rejection_reason && !item.admin_message)) return "";
+    return `
+      <div class="rejection-note">
+        ${item.rejection_reason ? `<span class="rejection-note-reason">Reason: ${escapeHtml(item.rejection_reason)}</span>` : ""}
+        ${
+          item.admin_message
+            ? `<span class="rejection-note-message-label">Message from Admin:</span><span class="rejection-note-message">${escapeHtml(item.admin_message)}</span>`
+            : ""
+        }
+      </div>
+    `;
+  }
+
   function renderInvestmentsView(items) {
     if (!items || items.length === 0) {
       investmentListEl.innerHTML = "";
@@ -529,6 +543,7 @@ document.addEventListener("DOMContentLoaded", () => {
             <span class="status-badge status-${item.status}">
               <i class="fa-solid ${meta.icon}"></i> ${meta.label}
             </span>
+            ${renderRejectionNote(item)}
           </div>
         `;
       })
@@ -567,6 +582,7 @@ document.addEventListener("DOMContentLoaded", () => {
             <span class="status-badge status-${item.status}">
               <i class="fa-solid ${meta.icon}"></i> ${meta.label}
             </span>
+            ${renderRejectionNote(item)}
           </div>
         `;
       })

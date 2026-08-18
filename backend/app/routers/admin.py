@@ -102,6 +102,7 @@ def approve_investment(
 @router.patch("/investments/{investment_id}/reject", response_model=schemas.InvestmentAdminOut)
 def reject_investment(
     investment_id: str,
+    payload: Optional[schemas.RejectionInput] = None,
     _admin: models.User = Depends(get_current_admin),
     db: Session = Depends(get_db),
 ):
@@ -109,6 +110,36 @@ def reject_investment(
 
     investment.status = models.InvestmentStatus.rejected
     investment.reviewed_at = datetime.utcnow()
+    investment.rejection_reason = payload.reason if payload else None
+    investment.admin_message = payload.message if payload else None
+
+    db.commit()
+    db.refresh(investment)
+    return investment
+
+
+@router.patch("/investments/{investment_id}/rejection-message", response_model=schemas.InvestmentAdminOut)
+def update_investment_rejection_message(
+    investment_id: str,
+    payload: schemas.RejectionInput,
+    _admin: models.User = Depends(get_current_admin),
+    db: Session = Depends(get_db),
+):
+    """Lets an admin edit the reason/message on an already-rejected request —
+    the customer's Transactions page always reflects whatever is saved here."""
+    try:
+        parsed_id = uuid.UUID(investment_id)
+    except ValueError:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid investment ID.")
+
+    investment = db.query(models.InvestmentRequest).filter(models.InvestmentRequest.id == parsed_id).first()
+    if not investment:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Investment request not found.")
+    if investment.status != models.InvestmentStatus.rejected:
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Only rejected requests have a rejection message.")
+
+    investment.rejection_reason = payload.reason
+    investment.admin_message = payload.message
 
     db.commit()
     db.refresh(investment)
@@ -151,6 +182,7 @@ def approve_withdrawal(
 @router.patch("/withdrawals/{withdrawal_id}/reject", response_model=schemas.WithdrawalAdminOut)
 def reject_withdrawal(
     withdrawal_id: str,
+    payload: Optional[schemas.RejectionInput] = None,
     _admin: models.User = Depends(get_current_admin),
     db: Session = Depends(get_db),
 ):
@@ -158,6 +190,36 @@ def reject_withdrawal(
 
     withdrawal.status = models.InvestmentStatus.rejected
     withdrawal.reviewed_at = datetime.utcnow()
+    withdrawal.rejection_reason = payload.reason if payload else None
+    withdrawal.admin_message = payload.message if payload else None
+
+    db.commit()
+    db.refresh(withdrawal)
+    return withdrawal
+
+
+@router.patch("/withdrawals/{withdrawal_id}/rejection-message", response_model=schemas.WithdrawalAdminOut)
+def update_withdrawal_rejection_message(
+    withdrawal_id: str,
+    payload: schemas.RejectionInput,
+    _admin: models.User = Depends(get_current_admin),
+    db: Session = Depends(get_db),
+):
+    """Lets an admin edit the reason/message on an already-rejected request —
+    the customer's Transactions page always reflects whatever is saved here."""
+    try:
+        parsed_id = uuid.UUID(withdrawal_id)
+    except ValueError:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid withdrawal ID.")
+
+    withdrawal = db.query(models.WithdrawalRequest).filter(models.WithdrawalRequest.id == parsed_id).first()
+    if not withdrawal:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Withdrawal request not found.")
+    if withdrawal.status != models.InvestmentStatus.rejected:
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Only rejected requests have a rejection message.")
+
+    withdrawal.rejection_reason = payload.reason
+    withdrawal.admin_message = payload.message
 
     db.commit()
     db.refresh(withdrawal)

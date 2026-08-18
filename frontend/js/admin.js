@@ -62,6 +62,14 @@ document.addEventListener("DOMContentLoaded", () => {
   const planActive = document.getElementById("planActive");
   const planSubmitBtn = document.getElementById("planSubmitBtn");
 
+  const rejectModalOverlay = document.getElementById("rejectModalOverlay");
+  const rejectModalClose = document.getElementById("rejectModalClose");
+  const rejectForm = document.getElementById("rejectForm");
+  const rejectFormAlert = document.getElementById("rejectFormAlert");
+  const rejectReason = document.getElementById("rejectReason");
+  const rejectMessage = document.getElementById("rejectMessage");
+  const rejectSubmitBtn = document.getElementById("rejectSubmitBtn");
+
   const referralsPanel = document.getElementById("referralsPanel");
   const referralSettingsAlert = document.getElementById("referralSettingsAlert");
   const referralSettingsForm = document.getElementById("referralSettingsForm");
@@ -108,6 +116,9 @@ document.addEventListener("DOMContentLoaded", () => {
   let allRequests = [];
   let allPlans = [];
   let editingPlanId = null;
+  let rejectTargetId = null;
+  let rejectTargetType = null; // "investments" | "withdrawals" (snapshot of currentType when opened)
+  let rejectIsEditingExisting = false;
 
   const STATUS_META = {
     pending: { label: "Pending", icon: "fa-clock" },
@@ -395,7 +406,10 @@ document.addEventListener("DOMContentLoaded", () => {
       btn.addEventListener("click", () => reviewRequest(btn.dataset.id, "approve"));
     });
     requestGrid.querySelectorAll(".btn-reject").forEach((btn) => {
-      btn.addEventListener("click", () => reviewRequest(btn.dataset.id, "reject"));
+      btn.addEventListener("click", () => openRejectModal(btn.dataset.id, false));
+    });
+    requestGrid.querySelectorAll(".btn-edit-reject").forEach((btn) => {
+      btn.addEventListener("click", () => openRejectModal(btn.dataset.id, true));
     });
   }
 
@@ -414,7 +428,28 @@ document.addEventListener("DOMContentLoaded", () => {
             </button>
           </div>
         `
-        : `<p class="request-reviewed-note">Reviewed on ${item.reviewed_at ? formatDate(item.reviewed_at) : "—"}</p>`;
+        : `
+          <p class="request-reviewed-note">Reviewed on ${item.reviewed_at ? formatDate(item.reviewed_at) : "—"}</p>
+          ${
+            item.status === "rejected"
+              ? `
+                <div class="rejection-note">
+                  ${item.rejection_reason ? `<span class="rejection-note-reason">Reason: ${escapeHtml(item.rejection_reason)}</span>` : ""}
+                  ${
+                    item.admin_message
+                      ? `<span class="rejection-note-message-label">Message to user:</span><span class="rejection-note-message">${escapeHtml(item.admin_message)}</span>`
+                      : ""
+                  }
+                </div>
+                <div class="request-card-actions">
+                  <button type="button" class="btn btn-outline btn-edit-reject" data-id="${item.id}">
+                    <i class="fa-solid fa-pen"></i> <span>Edit Message</span>
+                  </button>
+                </div>
+              `
+              : ""
+          }
+        `;
 
     const body =
       currentType === "investments"
@@ -485,6 +520,77 @@ document.addEventListener("DOMContentLoaded", () => {
       buttons.forEach((b) => (b.disabled = false));
     }
   }
+
+  // ---------- Reject modal: reason + custom message shown to the user ----------
+  function openRejectModal(id, isEditingExisting) {
+    rejectTargetId = id;
+    rejectTargetType = currentType;
+    rejectIsEditingExisting = isEditingExisting;
+
+    rejectForm.reset();
+    rejectFormAlert.className = "auth-alert";
+
+    if (isEditingExisting) {
+      const item = allRequests.find((r) => r.id === id);
+      rejectReason.value = item?.rejection_reason || rejectReason.options[0].value;
+      rejectMessage.value = item?.admin_message || "";
+    }
+
+    rejectModalOverlay.classList.add("open");
+    document.body.style.overflow = "hidden";
+  }
+
+  function closeRejectModal() {
+    rejectModalOverlay.classList.remove("open");
+    document.body.style.overflow = "";
+    rejectTargetId = null;
+    rejectTargetType = null;
+    rejectIsEditingExisting = false;
+  }
+
+  rejectModalClose?.addEventListener("click", closeRejectModal);
+  rejectModalOverlay?.addEventListener("click", (e) => {
+    if (e.target === rejectModalOverlay) closeRejectModal();
+  });
+
+  rejectForm?.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    rejectFormAlert.className = "auth-alert";
+
+    const payload = {
+      reason: rejectReason.value,
+      message: rejectMessage.value.trim() || null,
+    };
+
+    rejectSubmitBtn.classList.add("is-loading");
+    rejectSubmitBtn.disabled = true;
+
+    try {
+      const token = getToken();
+      const action = rejectIsEditingExisting ? "rejection-message" : "reject";
+      const res = await fetch(`${API_BASE_URL}/api/admin/${rejectTargetType}/${rejectTargetId}/${action}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify(payload),
+      });
+      const data = await res.json();
+
+      if (!res.ok) {
+        rejectFormAlert.textContent = formatApiError(data);
+        rejectFormAlert.className = "auth-alert show error";
+        return;
+      }
+
+      closeRejectModal();
+      await loadRequests();
+    } catch (err) {
+      rejectFormAlert.textContent = "Could not reach the server. Is the FastAPI backend running?";
+      rejectFormAlert.className = "auth-alert show error";
+    } finally {
+      rejectSubmitBtn.classList.remove("is-loading");
+      rejectSubmitBtn.disabled = false;
+    }
+  });
 
   // ---------- Filters + refresh ----------
   filterTabs.forEach((tab) => {

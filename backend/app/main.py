@@ -4,6 +4,7 @@ from dotenv import load_dotenv
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
+from sqlalchemy import text
 
 from . import models
 from .database import Base, SessionLocal, engine
@@ -50,9 +51,25 @@ DEFAULT_WHEEL_SEGMENTS = [
 ]
 
 
+# No Alembic in this project — create_all only adds missing tables, not
+# missing columns on tables that already exist in production. New columns
+# added to existing models need an explicit ALTER TABLE here, run once at
+# startup and safe to repeat (IF NOT EXISTS) on every deploy.
+COLUMN_MIGRATIONS = [
+    "ALTER TABLE investment_requests ADD COLUMN IF NOT EXISTS rejection_reason VARCHAR(255)",
+    "ALTER TABLE investment_requests ADD COLUMN IF NOT EXISTS admin_message TEXT",
+    "ALTER TABLE withdrawal_requests ADD COLUMN IF NOT EXISTS rejection_reason VARCHAR(255)",
+    "ALTER TABLE withdrawal_requests ADD COLUMN IF NOT EXISTS admin_message TEXT",
+]
+
+
 @app.on_event("startup")
 def on_startup():
     Base.metadata.create_all(bind=engine)
+
+    with engine.begin() as conn:
+        for statement in COLUMN_MIGRATIONS:
+            conn.execute(text(statement))
 
     db = SessionLocal()
     try:
