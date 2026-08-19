@@ -380,11 +380,11 @@
       <div class="payment-details-card">
         <div class="payment-detail-row">
           <span class="payment-detail-label"><i class="fa-solid fa-building-columns"></i> Bank Name</span>
-          <span class="payment-detail-value">O Pay</span>
+          <span class="payment-detail-value" id="depositBankName">O Pay</span>
         </div>
         <div class="payment-detail-row">
           <span class="payment-detail-label"><i class="fa-solid fa-user"></i> Account Holder</span>
-          <span class="payment-detail-value">Hafeez</span>
+          <span class="payment-detail-value" id="depositAccountHolder">Hafeez</span>
         </div>
         <div class="payment-detail-row">
           <span class="payment-detail-label"><i class="fa-solid fa-hashtag"></i> Account Number</span>
@@ -551,13 +551,24 @@
         <button type="button" class="role-btn" data-provider="jazzcash">
           <i class="fa-solid fa-wallet"></i> JazzCash
         </button>
+        <button type="button" class="role-btn" data-provider="other_bank">
+          <i class="fa-solid fa-building-columns"></i> Other Bank
+        </button>
+      </div>
+
+      <div class="form-group" id="withdrawBankNameGroup" hidden>
+        <label for="withdrawBankName">Bank Name</label>
+        <div class="input-wrap">
+          <i class="fa-solid fa-building-columns"></i>
+          <input type="text" id="withdrawBankName" placeholder="e.g. Meezan Bank" maxlength="120" />
+        </div>
       </div>
 
       <div class="form-group">
-        <label for="withdrawAccountNumber">Account Number</label>
+        <label for="withdrawAccountNumber" id="withdrawAccountNumberLabel">Account Number</label>
         <div class="input-wrap">
           <i class="fa-solid fa-phone"></i>
-          <input type="tel" id="withdrawAccountNumber" placeholder="03XXXXXXXXX" required minlength="7" />
+          <input type="text" id="withdrawAccountNumber" placeholder="03XXXXXXXXX" required minlength="7" />
         </div>
       </div>
 

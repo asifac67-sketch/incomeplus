@@ -23,6 +23,7 @@ class InvestmentStatus(str, enum.Enum):
 class WalletProvider(str, enum.Enum):
     easypaisa = "easypaisa"
     jazzcash = "jazzcash"
+    other_bank = "other_bank"
 
 
 class User(Base):
@@ -152,6 +153,19 @@ class ReferralSettings(Base):
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
 
 
+class DepositAccount(Base):
+    """The single bank/wallet account shown to users for sending investment
+    payments — admin-editable so it can change without a code deploy."""
+
+    __tablename__ = "deposit_account"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    bank_name = Column(String(120), nullable=False)
+    account_holder = Column(String(120), nullable=False)
+    account_number = Column(String(60), nullable=False)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
+
+
 class ReferralCommission(Base):
     __tablename__ = "referral_commissions"
 
@@ -175,7 +189,8 @@ class WithdrawalRequest(Base):
     user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False, index=True)
     amount = Column(Numeric(12, 2), nullable=False)
     wallet_provider = Column(Enum(WalletProvider), nullable=False)
-    account_number = Column(String(20), nullable=False)
+    account_number = Column(String(60), nullable=False)
+    bank_name = Column(String(120), nullable=True)
     status = Column(Enum(InvestmentStatus), default=InvestmentStatus.pending, nullable=False)
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
     reviewed_at = Column(DateTime, nullable=True)

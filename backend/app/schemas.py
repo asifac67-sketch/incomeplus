@@ -37,6 +37,7 @@ class ProfileUpdate(BaseModel):
     full_name: Optional[str] = Field(default=None, min_length=2, max_length=120)
     phone_number: Optional[str] = Field(default=None, min_length=7, max_length=20)
     country: Optional[str] = Field(default=None, min_length=2, max_length=80)
+    email: Optional[EmailStr] = None
 
 
 class ChangePasswordRequest(BaseModel):
@@ -171,7 +172,16 @@ class BonusSpinResult(BaseModel):
 class WithdrawalCreate(BaseModel):
     amount: float = Field(gt=0)
     wallet_provider: WalletProvider
-    account_number: str = Field(min_length=7, max_length=20)
+    account_number: str = Field(min_length=7, max_length=60)
+    bank_name: Optional[str] = Field(default=None, max_length=120, validate_default=True)
+
+    @field_validator("bank_name")
+    @classmethod
+    def bank_name_required_for_other_bank(cls, value, info):
+        provider = info.data.get("wallet_provider")
+        if provider == WalletProvider.other_bank and not (value and value.strip()):
+            raise ValueError("Please enter the bank name.")
+        return value
 
 
 class WithdrawalOut(BaseModel):
@@ -179,6 +189,7 @@ class WithdrawalOut(BaseModel):
     amount: float
     wallet_provider: WalletProvider
     account_number: str
+    bank_name: Optional[str] = None
     status: InvestmentStatus
     created_at: datetime
     reviewed_at: Optional[datetime] = None
@@ -232,6 +243,21 @@ class ReferralSettingsOut(BaseModel):
 
 class ReferralSettingsUpdate(BaseModel):
     commission_percent: float = Field(ge=0, le=100)
+
+
+class DepositAccountOut(BaseModel):
+    bank_name: str
+    account_holder: str
+    account_number: str
+
+    class Config:
+        from_attributes = True
+
+
+class DepositAccountUpdate(BaseModel):
+    bank_name: str = Field(min_length=1, max_length=120)
+    account_holder: str = Field(min_length=1, max_length=120)
+    account_number: str = Field(min_length=1, max_length=60)
 
 
 class WheelSegmentOut(BaseModel):

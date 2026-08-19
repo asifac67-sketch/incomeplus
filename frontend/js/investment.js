@@ -21,6 +21,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const copyAccountBtn = document.getElementById("copyAccountBtn");
   const accountNumberText = document.getElementById("accountNumberText");
+  const depositBankName = document.getElementById("depositBankName");
+  const depositAccountHolder = document.getElementById("depositAccountHolder");
 
   const transactionIdInput = document.getElementById("transactionId");
   const screenshotInput = document.getElementById("screenshotInput");
@@ -146,6 +148,23 @@ document.addEventListener("DOMContentLoaded", () => {
       planGrid.innerHTML = `<p class="plan-status-note">Could not load plans. Please try again.</p>`;
     }
   }
+
+  // The deposit account (where users send payment) is admin-editable, so it's
+  // fetched live rather than hardcoded in the HTML.
+  async function loadDepositAccount() {
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/deposit-account`);
+      if (!res.ok) return;
+      const account = await res.json();
+      if (depositBankName) depositBankName.textContent = account.bank_name;
+      if (depositAccountHolder) depositAccountHolder.textContent = account.account_holder;
+      if (accountNumberText) accountNumberText.textContent = account.account_number;
+    } catch (err) {
+      // Keep whatever is already shown — the fallback text in the HTML.
+    }
+  }
+
+  loadDepositAccount();
 
   function resetUpload() {
     selectedFile = null;

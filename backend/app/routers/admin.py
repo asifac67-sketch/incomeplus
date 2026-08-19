@@ -349,6 +349,39 @@ def update_referral_settings(
     return settings
 
 
+# ---------- Deposit account (shown to users when investing) ----------
+
+@router.get("/deposit-account", response_model=schemas.DepositAccountOut)
+def get_deposit_account_admin(
+    _admin: models.User = Depends(get_current_admin),
+    db: Session = Depends(get_db),
+):
+    account = db.query(models.DepositAccount).first()
+    if not account:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Deposit account not configured.")
+    return account
+
+
+@router.patch("/deposit-account", response_model=schemas.DepositAccountOut)
+def update_deposit_account(
+    payload: schemas.DepositAccountUpdate,
+    _admin: models.User = Depends(get_current_admin),
+    db: Session = Depends(get_db),
+):
+    account = db.query(models.DepositAccount).first()
+    if not account:
+        account = models.DepositAccount(**payload.model_dump())
+        db.add(account)
+    else:
+        account.bank_name = payload.bank_name
+        account.account_holder = payload.account_holder
+        account.account_number = payload.account_number
+
+    db.commit()
+    db.refresh(account)
+    return account
+
+
 # ---------- Users (full history) ----------
 
 @router.get("/users", response_model=List[schemas.UserOut])

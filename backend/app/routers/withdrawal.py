@@ -109,6 +109,7 @@ def create_withdrawal(
         amount=payload.amount,
         wallet_provider=payload.wallet_provider,
         account_number=payload.account_number.strip(),
+        bank_name=payload.bank_name.strip() if payload.bank_name else None,
     )
     db.add(new_request)
     db.commit()

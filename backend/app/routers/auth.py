@@ -113,7 +113,14 @@ def update_profile(
     for field, value in updates.items():
         setattr(current_user, field, value)
 
-    db.commit()
+    try:
+        db.commit()
+    except IntegrityError:
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="An account with this email already exists.",
+        )
     db.refresh(current_user)
     return current_user
 

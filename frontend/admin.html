@@ -112,6 +112,9 @@
         <button type="button" class="dash-nav-link" data-type="spin">
           <i class="fa-solid fa-dharmachakra"></i> Spin Control
         </button>
+        <button type="button" class="dash-nav-link" data-type="deposit">
+          <i class="fa-solid fa-building-columns"></i> Deposit Account
+        </button>
         <button type="button" class="dash-nav-link" data-type="users">
           <i class="fa-solid fa-users"></i> All Users
         </button>
@@ -226,6 +229,47 @@
           </div>
           <button type="submit" class="btn btn-primary" id="referralSettingsSubmitBtn">
             <span class="btn-text">Save Rate</span>
+            <i class="fa-solid fa-circle-notch fa-spin btn-spinner"></i>
+          </button>
+        </form>
+      </div>
+
+      <!-- ===== Deposit Account panel ===== -->
+      <div id="depositPanel" hidden>
+        <div class="referral-settings-card">
+          <div class="referral-settings-icon"><i class="fa-solid fa-building-columns"></i></div>
+          <div class="referral-settings-info">
+            <h3>Deposit Account</h3>
+            <p>The bank/wallet account shown to users when they invest — change it any time without a code deploy.</p>
+          </div>
+        </div>
+
+        <div class="auth-alert" id="depositAccountAlert"></div>
+
+        <form id="depositAccountForm" class="referral-settings-form">
+          <div class="form-group">
+            <label for="depositBankNameInput">Bank Name</label>
+            <div class="input-wrap">
+              <i class="fa-solid fa-building-columns"></i>
+              <input type="text" id="depositBankNameInput" maxlength="120" required />
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="depositAccountHolderInput">Account Holder</label>
+            <div class="input-wrap">
+              <i class="fa-solid fa-user"></i>
+              <input type="text" id="depositAccountHolderInput" maxlength="120" required />
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="depositAccountNumberInput">Account Number</label>
+            <div class="input-wrap">
+              <i class="fa-solid fa-hashtag"></i>
+              <input type="text" id="depositAccountNumberInput" maxlength="60" required />
+            </div>
+          </div>
+          <button type="submit" class="btn btn-primary" id="depositAccountSubmitBtn">
+            <span class="btn-text">Save Deposit Account</span>
             <i class="fa-solid fa-circle-notch fa-spin btn-spinner"></i>
           </button>
         </form>

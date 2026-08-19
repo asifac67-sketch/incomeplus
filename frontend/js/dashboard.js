@@ -120,6 +120,12 @@ document.addEventListener("DOMContentLoaded", () => {
     return div.innerHTML;
   }
 
+  function providerLabel(item) {
+    if (item.wallet_provider === "jazzcash") return "JazzCash";
+    if (item.wallet_provider === "other_bank") return escapeHtml(item.bank_name || "Other Bank");
+    return "Easypaisa";
+  }
+
   // ---------- Mobile sidebar ----------
   function openSidebar() {
     sidebar.classList.add("open");
@@ -373,6 +379,11 @@ document.addEventListener("DOMContentLoaded", () => {
       showFormAlert(profileAlert, "Please enter a valid mobile number.");
       return;
     }
+    const email = profileEmail.value.trim();
+    if (!email) {
+      showFormAlert(profileAlert, "Please enter a valid email address.");
+      return;
+    }
 
     profileSubmitBtn.classList.add("is-loading");
     profileSubmitBtn.disabled = true;
@@ -386,6 +397,7 @@ document.addEventListener("DOMContentLoaded", () => {
           full_name: profileFullName.value.trim(),
           phone_number: `+92${phone}`,
           country: profileCountry.value,
+          email,
         }),
       });
       const data = await res.json();
@@ -569,7 +581,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const isInvestment = item._type === "investment";
         const detail = isInvestment
           ? `Txn: ${escapeHtml(item.transaction_id)}`
-          : `${item.wallet_provider === "jazzcash" ? "JazzCash" : "Easypaisa"} &middot; ${escapeHtml(item.account_number)}`;
+          : `${providerLabel(item)} &middot; ${escapeHtml(item.account_number)}`;
 
         return `
           <div class="investment-row">

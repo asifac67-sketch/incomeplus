@@ -60,12 +60,21 @@ COLUMN_MIGRATIONS = [
     "ALTER TABLE investment_requests ADD COLUMN IF NOT EXISTS admin_message TEXT",
     "ALTER TABLE withdrawal_requests ADD COLUMN IF NOT EXISTS rejection_reason VARCHAR(255)",
     "ALTER TABLE withdrawal_requests ADD COLUMN IF NOT EXISTS admin_message TEXT",
+    "ALTER TABLE withdrawal_requests ADD COLUMN IF NOT EXISTS bank_name VARCHAR(120)",
+    "ALTER TABLE withdrawal_requests ALTER COLUMN account_number TYPE VARCHAR(60)",
 ]
 
 
 @app.on_event("startup")
 def on_startup():
     Base.metadata.create_all(bind=engine)
+
+    # ALTER TYPE ... ADD VALUE cannot run inside the same transaction as other
+    # DDL/DML that might use the new value, so it gets its own autocommit
+    # connection rather than sharing engine.begin() with the column migrations.
+    autocommit_engine = engine.execution_options(isolation_level="AUTOCOMMIT")
+    with autocommit_engine.connect() as conn:
+        conn.execute(text("ALTER TYPE walletprovider ADD VALUE IF NOT EXISTS 'other_bank'"))
 
     with engine.begin() as conn:
         for statement in COLUMN_MIGRATIONS:
@@ -86,6 +95,16 @@ def on_startup():
             for segment_data in DEFAULT_WHEEL_SEGMENTS:
                 db.add(models.WheelSegment(**segment_data))
             db.commit()
+
+        if db.query(models.DepositAccount).count() == 0:
+            db.add(
+                models.DepositAccount(
+                    bank_name="O Pay",
+                    account_holder="Hafeez",
+                    account_number="03213628639",
+                )
+            )
+            db.commit()
     finally:
         db.close()
 
@@ -101,4 +120,5 @@ app.include_router(admin.router)
 app.include_router(bonus.router)
 app.include_router(withdrawal.router)
 app.include_router(plans.router)
+app.include_router(plans.deposit_router)
 app.include_router(referrals.router)

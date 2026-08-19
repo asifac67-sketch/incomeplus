@@ -76,6 +76,14 @@ document.addEventListener("DOMContentLoaded", () => {
   const referralCommissionPercent = document.getElementById("referralCommissionPercent");
   const referralSettingsSubmitBtn = document.getElementById("referralSettingsSubmitBtn");
 
+  const depositPanel = document.getElementById("depositPanel");
+  const depositAccountAlert = document.getElementById("depositAccountAlert");
+  const depositAccountForm = document.getElementById("depositAccountForm");
+  const depositBankNameInput = document.getElementById("depositBankNameInput");
+  const depositAccountHolderInput = document.getElementById("depositAccountHolderInput");
+  const depositAccountNumberInput = document.getElementById("depositAccountNumberInput");
+  const depositAccountSubmitBtn = document.getElementById("depositAccountSubmitBtn");
+
   const spinPanel = document.getElementById("spinPanel");
   const spinAlert = document.getElementById("spinAlert");
   const spinUserSearch = document.getElementById("spinUserSearch");
@@ -173,6 +181,12 @@ document.addEventListener("DOMContentLoaded", () => {
     const div = document.createElement("div");
     div.textContent = str;
     return div.innerHTML;
+  }
+
+  function providerLabel(item) {
+    if (item.wallet_provider === "jazzcash") return "JazzCash";
+    if (item.wallet_provider === "other_bank") return escapeHtml(item.bank_name || "Other Bank");
+    return "Easypaisa";
   }
 
   function showAdminAlert(message, type = "error") {
@@ -289,6 +303,7 @@ document.addEventListener("DOMContentLoaded", () => {
     plans: "Investment Plans",
     referrals: "Referral Program",
     spin: "Spin Control",
+    deposit: "Deposit Account",
     users: "All Users",
   };
 
@@ -297,6 +312,7 @@ document.addEventListener("DOMContentLoaded", () => {
     plansPanel.hidden = true;
     referralsPanel.hidden = true;
     spinPanel.hidden = true;
+    depositPanel.hidden = true;
     usersPanel.hidden = true;
   }
 
@@ -326,6 +342,12 @@ document.addEventListener("DOMContentLoaded", () => {
         spinPanel.hidden = false;
         loadWheelSegments();
         loadSpinUsers();
+        return;
+      }
+
+      if (currentType === "deposit") {
+        depositPanel.hidden = false;
+        loadDepositAccount();
         return;
       }
 
@@ -467,7 +489,7 @@ document.addEventListener("DOMContentLoaded", () => {
         : `
           <div class="request-card-body">
             <div class="request-detail"><span>Amount</span><strong>${formatPkr(item.amount)}</strong></div>
-            <div class="request-detail"><span>Provider</span><strong>${item.wallet_provider === "jazzcash" ? "JazzCash" : "Easypaisa"}</strong></div>
+            <div class="request-detail"><span>Provider</span><strong>${providerLabel(item)}</strong></div>
             <div class="request-detail"><span>Account Number</span><strong>${escapeHtml(item.account_number)}</strong></div>
             <div class="request-detail"><span>Submitted</span><strong>${formatDate(item.created_at)}</strong></div>
           </div>
@@ -880,6 +902,75 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
+  // ---------- Deposit account settings ----------
+  function showDepositAlert(message, type = "error") {
+    depositAccountAlert.textContent = message;
+    depositAccountAlert.className = `auth-alert show ${type}`;
+  }
+
+  async function loadDepositAccount() {
+    depositAccountAlert.className = "auth-alert";
+    const token = getToken();
+
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/admin/deposit-account`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!res.ok) {
+        if (res.status === 401 || res.status === 403) {
+          clearToken();
+          showGate();
+          return;
+        }
+        showDepositAlert("Could not load the deposit account.");
+        return;
+      }
+      const data = await res.json();
+      depositBankNameInput.value = data.bank_name;
+      depositAccountHolderInput.value = data.account_holder;
+      depositAccountNumberInput.value = data.account_number;
+    } catch (err) {
+      showDepositAlert("Could not reach the server. Is the FastAPI backend running?");
+    }
+  }
+
+  depositAccountForm?.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    depositAccountAlert.className = "auth-alert";
+
+    depositAccountSubmitBtn.classList.add("is-loading");
+    depositAccountSubmitBtn.disabled = true;
+
+    try {
+      const token = getToken();
+      const res = await fetch(`${API_BASE_URL}/api/admin/deposit-account`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({
+          bank_name: depositBankNameInput.value.trim(),
+          account_holder: depositAccountHolderInput.value.trim(),
+          account_number: depositAccountNumberInput.value.trim(),
+        }),
+      });
+      const data = await res.json();
+
+      if (!res.ok) {
+        showDepositAlert(formatApiError(data));
+        return;
+      }
+
+      depositBankNameInput.value = data.bank_name;
+      depositAccountHolderInput.value = data.account_holder;
+      depositAccountNumberInput.value = data.account_number;
+      showDepositAlert("Deposit account updated.", "success");
+    } catch (err) {
+      showDepositAlert("Could not reach the server. Is the FastAPI backend running?");
+    } finally {
+      depositAccountSubmitBtn.classList.remove("is-loading");
+      depositAccountSubmitBtn.disabled = false;
+    }
+  });
+
   // ---------- Wheel Prizes ----------
   const wheelSegmentsGrid = document.getElementById("wheelSegmentsGrid");
   const wheelSegmentsAlert = document.getElementById("wheelSegmentsAlert");
@@ -1264,7 +1355,7 @@ document.addEventListener("DOMContentLoaded", () => {
           type === "investment"
             ? `Txn: ${escapeHtml(item.transaction_id)}`
             : type === "withdrawal"
-            ? `${item.wallet_provider === "jazzcash" ? "JazzCash" : "Easypaisa"} &middot; ${escapeHtml(item.account_number)}`
+            ? `${providerLabel(item)} &middot; ${escapeHtml(item.account_number)}`
             : `Day ${item.day_number} spin`;
         const date = formatDate(item.created_at || item.spun_at);
         const badge =

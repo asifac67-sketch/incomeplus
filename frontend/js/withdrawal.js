@@ -15,6 +15,9 @@ document.addEventListener("DOMContentLoaded", () => {
   const amountInput = document.getElementById("withdrawAmount");
   const providerButtons = document.querySelectorAll("#walletProviderToggle .role-btn");
   const accountNumberInput = document.getElementById("withdrawAccountNumber");
+  const accountNumberLabel = document.getElementById("withdrawAccountNumberLabel");
+  const bankNameGroup = document.getElementById("withdrawBankNameGroup");
+  const bankNameInput = document.getElementById("withdrawBankName");
   const submitBtn = document.getElementById("withdrawSubmitBtn");
   const successAmountText = document.getElementById("withdrawSuccessAmount");
   const doneBtn = document.getElementById("withdrawDoneBtn");
@@ -56,11 +59,19 @@ document.addEventListener("DOMContentLoaded", () => {
     clearAlert();
   }
 
+  function updateProviderFields() {
+    const isOtherBank = selectedProvider === "other_bank";
+    if (bankNameGroup) bankNameGroup.hidden = !isOtherBank;
+    if (accountNumberLabel) accountNumberLabel.textContent = isOtherBank ? "Account Number / IBAN" : "Account Number";
+  }
+
   function resetModal() {
     amountInput.value = "";
     accountNumberInput.value = "";
+    if (bankNameInput) bankNameInput.value = "";
     selectedProvider = "easypaisa";
     providerButtons.forEach((b) => b.classList.toggle("active", b.dataset.provider === "easypaisa"));
+    updateProviderFields();
     goToStep("form");
   }
 
@@ -148,6 +159,7 @@ document.addEventListener("DOMContentLoaded", () => {
       providerButtons.forEach((b) => b.classList.remove("active"));
       btn.classList.add("active");
       selectedProvider = btn.dataset.provider;
+      updateProviderFields();
     });
   });
 
@@ -162,6 +174,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const amount = Number(amountInput.value);
     const accountNumber = accountNumberInput.value.trim();
+    const bankName = bankNameInput ? bankNameInput.value.trim() : "";
 
     if (!amount || amount <= 0) {
       showAlert("Please enter a valid amount.");
@@ -173,6 +186,10 @@ document.addEventListener("DOMContentLoaded", () => {
     }
     if (accountNumber.length < 7) {
       showAlert("Please enter a valid account number.");
+      return;
+    }
+    if (selectedProvider === "other_bank" && !bankName) {
+      showAlert("Please enter the bank name.");
       return;
     }
 
@@ -189,6 +206,7 @@ document.addEventListener("DOMContentLoaded", () => {
           amount,
           wallet_provider: selectedProvider,
           account_number: accountNumber,
+          bank_name: selectedProvider === "other_bank" ? bankName : null,
         }),
       });
 
@@ -255,7 +273,12 @@ document.addEventListener("DOMContentLoaded", () => {
     withdrawalList.innerHTML = items
       .map((item) => {
         const meta = STATUS_META[item.status] || STATUS_META.pending;
-        const providerLabel = item.wallet_provider === "jazzcash" ? "JazzCash" : "Easypaisa";
+        const providerLabel =
+          item.wallet_provider === "jazzcash"
+            ? "JazzCash"
+            : item.wallet_provider === "other_bank"
+            ? escapeHtml(item.bank_name || "Other Bank")
+            : "Easypaisa";
         return `
           <div class="investment-row">
             <span class="investment-row-amount">${formatPkr(item.amount)}</span>
