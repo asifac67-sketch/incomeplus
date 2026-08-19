@@ -75,6 +75,8 @@ def on_startup():
     autocommit_engine = engine.execution_options(isolation_level="AUTOCOMMIT")
     with autocommit_engine.connect() as conn:
         conn.execute(text("ALTER TYPE walletprovider ADD VALUE IF NOT EXISTS 'other_bank'"))
+        conn.execute(text("ALTER TYPE investmentstatus ADD VALUE IF NOT EXISTS 'under_investigation'"))
+        conn.execute(text("ALTER TYPE investmentstatus ADD VALUE IF NOT EXISTS 'refund_in_progress'"))
 
     with engine.begin() as conn:
         for statement in COLUMN_MIGRATIONS:

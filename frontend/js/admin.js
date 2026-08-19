@@ -132,7 +132,12 @@ document.addEventListener("DOMContentLoaded", () => {
     pending: { label: "Pending", icon: "fa-clock" },
     approved: { label: "Approved", icon: "fa-circle-check" },
     rejected: { label: "Rejected", icon: "fa-circle-xmark" },
+    under_investigation: { label: "Under Investigation", icon: "fa-magnifying-glass" },
+    refund_in_progress: { label: "Refund in Progress", icon: "fa-rotate" },
   };
+
+  // Withdrawal statuses that haven't been finalized yet — still show action buttons.
+  const WITHDRAWAL_ACTIVE_STATUSES = ["pending", "under_investigation", "refund_in_progress"];
 
   function getToken() {
     return localStorage.getItem("rt_admin_token") || sessionStorage.getItem("rt_admin_token");
@@ -433,15 +438,36 @@ document.addEventListener("DOMContentLoaded", () => {
     requestGrid.querySelectorAll(".btn-edit-reject").forEach((btn) => {
       btn.addEventListener("click", () => openRejectModal(btn.dataset.id, true));
     });
+    requestGrid.querySelectorAll(".btn-mark-investigation").forEach((btn) => {
+      btn.addEventListener("click", () => reviewRequest(btn.dataset.id, "mark-under-investigation"));
+    });
+    requestGrid.querySelectorAll(".btn-mark-refund").forEach((btn) => {
+      btn.addEventListener("click", () => reviewRequest(btn.dataset.id, "mark-refund-progress"));
+    });
   }
 
   function renderCard(item) {
     const meta = STATUS_META[item.status] || STATUS_META.pending;
 
+    const isWithdrawalActive = currentType === "withdrawals" && WITHDRAWAL_ACTIVE_STATUSES.includes(item.status);
+    const isInvestmentPending = currentType === "investments" && item.status === "pending";
+
     const actions =
-      item.status === "pending"
+      isWithdrawalActive || isInvestmentPending
         ? `
           <div class="request-card-actions">
+            ${
+              currentType === "withdrawals"
+                ? `
+                  <button type="button" class="btn btn-outline btn-mark-investigation${item.status === "under_investigation" ? " active-status" : ""}" data-id="${item.id}">
+                    <i class="fa-solid fa-magnifying-glass"></i> <span>Under Investigation</span>
+                  </button>
+                  <button type="button" class="btn btn-outline btn-mark-refund${item.status === "refund_in_progress" ? " active-status" : ""}" data-id="${item.id}">
+                    <i class="fa-solid fa-rotate"></i> <span>Refund in Progress</span>
+                  </button>
+                `
+                : ""
+            }
             <button type="button" class="btn btn-outline btn-reject" data-id="${item.id}">
               <i class="fa-solid fa-xmark"></i> <span>Reject</span>
             </button>

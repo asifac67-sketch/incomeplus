@@ -52,12 +52,19 @@ def _required_investment(current_user: models.User, db: Session) -> Optional[flo
     return None if matching_investment else float(segment.required_investment)
 
 
+RESERVED_WITHDRAWAL_STATUSES = (
+    models.InvestmentStatus.pending,
+    models.InvestmentStatus.under_investigation,
+    models.InvestmentStatus.refund_in_progress,
+)
+
+
 def _available_balance(current_user: models.User, db: Session) -> float:
     pending_total = (
         db.query(func.coalesce(func.sum(models.WithdrawalRequest.amount), 0))
         .filter(
             models.WithdrawalRequest.user_id == current_user.id,
-            models.WithdrawalRequest.status == models.InvestmentStatus.pending,
+            models.WithdrawalRequest.status.in_(RESERVED_WITHDRAWAL_STATUSES),
         )
         .scalar()
     )

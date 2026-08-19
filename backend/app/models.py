@@ -18,6 +18,9 @@ class InvestmentStatus(str, enum.Enum):
     pending = "pending"
     approved = "approved"
     rejected = "rejected"
+    # Withdrawal-only intermediate states — investments never use these.
+    under_investigation = "under_investigation"
+    refund_in_progress = "refund_in_progress"
 
 
 class WalletProvider(str, enum.Enum):

@@ -1087,6 +1087,8 @@ ul { list-style: none; }
 .status-badge.status-pending { background: rgba(255, 159, 67, 0.15); color: #ffb454; }
 .status-badge.status-approved { background: rgba(46, 204, 113, 0.15); color: #6bf0a0; }
 .status-badge.status-rejected { background: rgba(255, 92, 122, 0.15); color: var(--accent-danger); }
+.status-badge.status-under_investigation { background: rgba(0, 212, 255, 0.15); color: var(--accent-2); }
+.status-badge.status-refund_in_progress { background: rgba(108, 92, 231, 0.15); color: #a29bfe; }
 
 .rejection-note {
   flex-basis: 100%;

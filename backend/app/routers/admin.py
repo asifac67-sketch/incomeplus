@@ -14,7 +14,7 @@ from .investment import _daily_rate, _get_or_create_claim
 router = APIRouter(prefix="/api/admin", tags=["admin"])
 
 
-def _get_pending_record(model_cls, record_id: str, db: Session, label: str):
+def _get_pending_record(model_cls, record_id: str, db: Session, label: str, allowed_statuses=None):
     try:
         parsed_id = uuid.UUID(record_id)
     except ValueError:
@@ -26,12 +26,23 @@ def _get_pending_record(model_cls, record_id: str, db: Session, label: str):
     record = db.query(model_cls).filter(model_cls.id == parsed_id).with_for_update().first()
     if not record:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"{label.capitalize()} request not found.")
-    if record.status != models.InvestmentStatus.pending:
+
+    allowed = allowed_statuses or {models.InvestmentStatus.pending}
+    if record.status not in allowed:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
             detail=f"This request has already been {record.status.value}.",
         )
     return record
+
+
+# Withdrawals can move through admin-visible review states before a final
+# approve/reject — none of these count as "finalized" yet.
+WITHDRAWAL_ACTIVE_STATUSES = {
+    models.InvestmentStatus.pending,
+    models.InvestmentStatus.under_investigation,
+    models.InvestmentStatus.refund_in_progress,
+}
 
 
 # ---------- Investments ----------
@@ -166,7 +177,9 @@ def approve_withdrawal(
     _admin: models.User = Depends(get_current_admin),
     db: Session = Depends(get_db),
 ):
-    withdrawal = _get_pending_record(models.WithdrawalRequest, withdrawal_id, db, "withdrawal")
+    withdrawal = _get_pending_record(
+        models.WithdrawalRequest, withdrawal_id, db, "withdrawal", allowed_statuses=WITHDRAWAL_ACTIVE_STATUSES
+    )
 
     investor = db.query(models.User).filter(models.User.id == withdrawal.user_id).with_for_update().first()
 
@@ -186,13 +199,45 @@ def reject_withdrawal(
     _admin: models.User = Depends(get_current_admin),
     db: Session = Depends(get_db),
 ):
-    withdrawal = _get_pending_record(models.WithdrawalRequest, withdrawal_id, db, "withdrawal")
+    withdrawal = _get_pending_record(
+        models.WithdrawalRequest, withdrawal_id, db, "withdrawal", allowed_statuses=WITHDRAWAL_ACTIVE_STATUSES
+    )
 
     withdrawal.status = models.InvestmentStatus.rejected
     withdrawal.reviewed_at = datetime.utcnow()
     withdrawal.rejection_reason = payload.reason if payload else None
     withdrawal.admin_message = payload.message if payload else None
 
+    db.commit()
+    db.refresh(withdrawal)
+    return withdrawal
+
+
+@router.patch("/withdrawals/{withdrawal_id}/mark-under-investigation", response_model=schemas.WithdrawalAdminOut)
+def mark_withdrawal_under_investigation(
+    withdrawal_id: str,
+    _admin: models.User = Depends(get_current_admin),
+    db: Session = Depends(get_db),
+):
+    withdrawal = _get_pending_record(
+        models.WithdrawalRequest, withdrawal_id, db, "withdrawal", allowed_statuses=WITHDRAWAL_ACTIVE_STATUSES
+    )
+    withdrawal.status = models.InvestmentStatus.under_investigation
+    db.commit()
+    db.refresh(withdrawal)
+    return withdrawal
+
+
+@router.patch("/withdrawals/{withdrawal_id}/mark-refund-progress", response_model=schemas.WithdrawalAdminOut)
+def mark_withdrawal_refund_progress(
+    withdrawal_id: str,
+    _admin: models.User = Depends(get_current_admin),
+    db: Session = Depends(get_db),
+):
+    withdrawal = _get_pending_record(
+        models.WithdrawalRequest, withdrawal_id, db, "withdrawal", allowed_statuses=WITHDRAWAL_ACTIVE_STATUSES
+    )
+    withdrawal.status = models.InvestmentStatus.refund_in_progress
     db.commit()
     db.refresh(withdrawal)
     return withdrawal
