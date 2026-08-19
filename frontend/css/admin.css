@@ -717,6 +717,8 @@
   .spin-user-card { flex-wrap: wrap; }
   .spin-user-actions { width: 100%; }
   .spin-user-actions .btn { flex: 1; }
+  .request-card-actions { flex-direction: column; }
+  .request-card-actions .btn { width: 100%; min-width: 0; }
   .user-detail-stats { grid-template-columns: repeat(2, 1fr); }
   .spin-search-toolbar { flex-direction: column; align-items: stretch; }
   .spin-search-toolbar .input-wrap { max-width: none; }
