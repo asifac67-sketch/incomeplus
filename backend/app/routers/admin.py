@@ -36,9 +36,9 @@ def _get_pending_record(model_cls, record_id: str, db: Session, label: str, allo
     return record
 
 
-# Withdrawals can move through admin-visible review states before a final
+# Requests can move through admin-visible review states before a final
 # approve/reject — none of these count as "finalized" yet.
-WITHDRAWAL_ACTIVE_STATUSES = {
+ACTIVE_STATUSES = {
     models.InvestmentStatus.pending,
     models.InvestmentStatus.under_investigation,
     models.InvestmentStatus.refund_in_progress,
@@ -65,7 +65,9 @@ def approve_investment(
     _admin: models.User = Depends(get_current_admin),
     db: Session = Depends(get_db),
 ):
-    investment = _get_pending_record(models.InvestmentRequest, investment_id, db, "investment")
+    investment = _get_pending_record(
+        models.InvestmentRequest, investment_id, db, "investment", allowed_statuses=ACTIVE_STATUSES
+    )
 
     investor = db.query(models.User).filter(models.User.id == investment.user_id).with_for_update().first()
 
@@ -117,13 +119,45 @@ def reject_investment(
     _admin: models.User = Depends(get_current_admin),
     db: Session = Depends(get_db),
 ):
-    investment = _get_pending_record(models.InvestmentRequest, investment_id, db, "investment")
+    investment = _get_pending_record(
+        models.InvestmentRequest, investment_id, db, "investment", allowed_statuses=ACTIVE_STATUSES
+    )
 
     investment.status = models.InvestmentStatus.rejected
     investment.reviewed_at = datetime.utcnow()
     investment.rejection_reason = payload.reason if payload else None
     investment.admin_message = payload.message if payload else None
 
+    db.commit()
+    db.refresh(investment)
+    return investment
+
+
+@router.patch("/investments/{investment_id}/mark-under-investigation", response_model=schemas.InvestmentAdminOut)
+def mark_investment_under_investigation(
+    investment_id: str,
+    _admin: models.User = Depends(get_current_admin),
+    db: Session = Depends(get_db),
+):
+    investment = _get_pending_record(
+        models.InvestmentRequest, investment_id, db, "investment", allowed_statuses=ACTIVE_STATUSES
+    )
+    investment.status = models.InvestmentStatus.under_investigation
+    db.commit()
+    db.refresh(investment)
+    return investment
+
+
+@router.patch("/investments/{investment_id}/mark-refund-progress", response_model=schemas.InvestmentAdminOut)
+def mark_investment_refund_progress(
+    investment_id: str,
+    _admin: models.User = Depends(get_current_admin),
+    db: Session = Depends(get_db),
+):
+    investment = _get_pending_record(
+        models.InvestmentRequest, investment_id, db, "investment", allowed_statuses=ACTIVE_STATUSES
+    )
+    investment.status = models.InvestmentStatus.refund_in_progress
     db.commit()
     db.refresh(investment)
     return investment
@@ -178,7 +212,7 @@ def approve_withdrawal(
     db: Session = Depends(get_db),
 ):
     withdrawal = _get_pending_record(
-        models.WithdrawalRequest, withdrawal_id, db, "withdrawal", allowed_statuses=WITHDRAWAL_ACTIVE_STATUSES
+        models.WithdrawalRequest, withdrawal_id, db, "withdrawal", allowed_statuses=ACTIVE_STATUSES
     )
 
     investor = db.query(models.User).filter(models.User.id == withdrawal.user_id).with_for_update().first()
@@ -200,7 +234,7 @@ def reject_withdrawal(
     db: Session = Depends(get_db),
 ):
     withdrawal = _get_pending_record(
-        models.WithdrawalRequest, withdrawal_id, db, "withdrawal", allowed_statuses=WITHDRAWAL_ACTIVE_STATUSES
+        models.WithdrawalRequest, withdrawal_id, db, "withdrawal", allowed_statuses=ACTIVE_STATUSES
     )
 
     withdrawal.status = models.InvestmentStatus.rejected
@@ -220,7 +254,7 @@ def mark_withdrawal_under_investigation(
     db: Session = Depends(get_db),
 ):
     withdrawal = _get_pending_record(
-        models.WithdrawalRequest, withdrawal_id, db, "withdrawal", allowed_statuses=WITHDRAWAL_ACTIVE_STATUSES
+        models.WithdrawalRequest, withdrawal_id, db, "withdrawal", allowed_statuses=ACTIVE_STATUSES
     )
     withdrawal.status = models.InvestmentStatus.under_investigation
     db.commit()
@@ -235,7 +269,7 @@ def mark_withdrawal_refund_progress(
     db: Session = Depends(get_db),
 ):
     withdrawal = _get_pending_record(
-        models.WithdrawalRequest, withdrawal_id, db, "withdrawal", allowed_statuses=WITHDRAWAL_ACTIVE_STATUSES
+        models.WithdrawalRequest, withdrawal_id, db, "withdrawal", allowed_statuses=ACTIVE_STATUSES
     )
     withdrawal.status = models.InvestmentStatus.refund_in_progress
     db.commit()

@@ -136,8 +136,8 @@ document.addEventListener("DOMContentLoaded", () => {
     refund_in_progress: { label: "Refund in Progress", icon: "fa-rotate" },
   };
 
-  // Withdrawal statuses that haven't been finalized yet — still show action buttons.
-  const WITHDRAWAL_ACTIVE_STATUSES = ["pending", "under_investigation", "refund_in_progress"];
+  // Statuses that haven't been finalized yet — still show action buttons.
+  const ACTIVE_STATUSES = ["pending", "under_investigation", "refund_in_progress"];
 
   function getToken() {
     return localStorage.getItem("rt_admin_token") || sessionStorage.getItem("rt_admin_token");
@@ -449,25 +449,18 @@ document.addEventListener("DOMContentLoaded", () => {
   function renderCard(item) {
     const meta = STATUS_META[item.status] || STATUS_META.pending;
 
-    const isWithdrawalActive = currentType === "withdrawals" && WITHDRAWAL_ACTIVE_STATUSES.includes(item.status);
-    const isInvestmentPending = currentType === "investments" && item.status === "pending";
+    const isActive = ACTIVE_STATUSES.includes(item.status);
 
     const actions =
-      isWithdrawalActive || isInvestmentPending
+      isActive
         ? `
           <div class="request-card-actions">
-            ${
-              currentType === "withdrawals"
-                ? `
-                  <button type="button" class="btn btn-outline btn-mark-investigation${item.status === "under_investigation" ? " active-status" : ""}" data-id="${item.id}">
-                    <i class="fa-solid fa-magnifying-glass"></i> <span>Under Investigation</span>
-                  </button>
-                  <button type="button" class="btn btn-outline btn-mark-refund${item.status === "refund_in_progress" ? " active-status" : ""}" data-id="${item.id}">
-                    <i class="fa-solid fa-rotate"></i> <span>Refund in Progress</span>
-                  </button>
-                `
-                : ""
-            }
+            <button type="button" class="btn btn-outline btn-mark-investigation${item.status === "under_investigation" ? " active-status" : ""}" data-id="${item.id}">
+              <i class="fa-solid fa-magnifying-glass"></i> <span>Under Investigation</span>
+            </button>
+            <button type="button" class="btn btn-outline btn-mark-refund${item.status === "refund_in_progress" ? " active-status" : ""}" data-id="${item.id}">
+              <i class="fa-solid fa-rotate"></i> <span>Refund in Progress</span>
+            </button>
             <button type="button" class="btn btn-outline btn-reject" data-id="${item.id}">
               <i class="fa-solid fa-xmark"></i> <span>Reject</span>
             </button>

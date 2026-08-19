@@ -341,6 +341,8 @@ document.addEventListener("DOMContentLoaded", () => {
     pending: { label: "Pending", icon: "fa-clock" },
     approved: { label: "Approved", icon: "fa-circle-check" },
     rejected: { label: "Rejected", icon: "fa-circle-xmark" },
+    under_investigation: { label: "Under Investigation", icon: "fa-magnifying-glass" },
+    refund_in_progress: { label: "Refund in Progress", icon: "fa-rotate" },
   };
 
   function formatDate(isoString) {
