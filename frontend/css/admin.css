@@ -412,6 +412,14 @@
 .referral-settings-form .form-group { flex: 1; margin-bottom: 0; }
 .referral-settings-form .btn { flex-shrink: 0; }
 
+.deposit-account-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  max-width: 420px;
+}
+.deposit-account-form .btn { align-self: flex-start; }
+
 /* ============================================
    Spin Control
 ============================================ */
@@ -697,6 +705,8 @@
   .referral-settings-card { flex-direction: column; text-align: center; }
   .referral-settings-form { flex-direction: column; align-items: stretch; max-width: none; }
   .referral-settings-form .btn { width: 100%; }
+  .deposit-account-form { max-width: none; }
+  .deposit-account-form .btn { width: 100%; align-self: stretch; }
   .admin-plan-actions { flex-wrap: wrap; }
   .spin-user-card { flex-wrap: wrap; }
   .spin-user-actions { width: 100%; }
