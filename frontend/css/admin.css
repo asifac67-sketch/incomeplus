@@ -582,9 +582,17 @@
 
 .user-detail-header {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: 16px;
   margin-bottom: 22px;
+}
+
+.user-detail-header-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-left: auto;
 }
 
 .user-detail-avatar {

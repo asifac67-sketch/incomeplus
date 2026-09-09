@@ -103,6 +103,20 @@ document.addEventListener("DOMContentLoaded", () => {
   const usersList = document.getElementById("usersList");
   const usersEmptyState = document.getElementById("usersEmptyState");
 
+  const assignPlanPanel = document.getElementById("assignPlanPanel");
+  const assignPlanListAlert = document.getElementById("assignPlanListAlert");
+  const assignPlanUserSearch = document.getElementById("assignPlanUserSearch");
+  const assignPlanUserList = document.getElementById("assignPlanUserList");
+  const assignPlanEmptyState = document.getElementById("assignPlanEmptyState");
+
+  const assignPlanModalOverlay = document.getElementById("assignPlanModalOverlay");
+  const assignPlanModalClose = document.getElementById("assignPlanModalClose");
+  const assignPlanModalSubtitle = document.getElementById("assignPlanModalSubtitle");
+  const assignPlanAlert = document.getElementById("assignPlanAlert");
+  const assignPlanForm = document.getElementById("assignPlanForm");
+  const assignPlanSelect = document.getElementById("assignPlanSelect");
+  const assignPlanSubmitBtn = document.getElementById("assignPlanSubmitBtn");
+
   const userDetailOverlay = document.getElementById("userDetailOverlay");
   const userDetailClose = document.getElementById("userDetailClose");
   const userDetailAvatar = document.getElementById("userDetailAvatar");
@@ -118,6 +132,17 @@ document.addEventListener("DOMContentLoaded", () => {
   const userDetailWithdrawals = document.getElementById("userDetailWithdrawals");
   const userDetailSpins = document.getElementById("userDetailSpins");
   const userDetailEmptyNote = document.getElementById("userDetailEmptyNote");
+  const userDetailAssignPlanBtn = document.getElementById("userDetailAssignPlanBtn");
+  const userDetailEditBalanceBtn = document.getElementById("userDetailEditBalanceBtn");
+
+  const editBalanceModalOverlay = document.getElementById("editBalanceModalOverlay");
+  const editBalanceModalClose = document.getElementById("editBalanceModalClose");
+  const editBalanceModalSubtitle = document.getElementById("editBalanceModalSubtitle");
+  const editBalanceAlert = document.getElementById("editBalanceAlert");
+  const editBalanceForm = document.getElementById("editBalanceForm");
+  const editBalanceEarning = document.getElementById("editBalanceEarning");
+  const editBalanceInvestment = document.getElementById("editBalanceInvestment");
+  const editBalanceSubmitBtn = document.getElementById("editBalanceSubmitBtn");
 
   let currentType = "investments"; // "investments" | "withdrawals" | "plans" | "referrals" | "spin"
   let activeFilter = "";
@@ -127,6 +152,7 @@ document.addEventListener("DOMContentLoaded", () => {
   let rejectTargetId = null;
   let rejectTargetType = null; // "investments" | "withdrawals" (snapshot of currentType when opened)
   let rejectIsEditingExisting = false;
+  let assignPlanTargetUserId = null;
 
   const STATUS_META = {
     pending: { label: "Pending", icon: "fa-clock" },
@@ -309,6 +335,7 @@ document.addEventListener("DOMContentLoaded", () => {
     referrals: "Referral Program",
     spin: "Spin Control",
     deposit: "Deposit Account",
+    "assign-plan": "Assign Plan",
     users: "All Users",
   };
 
@@ -318,6 +345,7 @@ document.addEventListener("DOMContentLoaded", () => {
     referralsPanel.hidden = true;
     spinPanel.hidden = true;
     depositPanel.hidden = true;
+    assignPlanPanel.hidden = true;
     usersPanel.hidden = true;
   }
 
@@ -353,6 +381,13 @@ document.addEventListener("DOMContentLoaded", () => {
       if (currentType === "deposit") {
         depositPanel.hidden = false;
         loadDepositAccount();
+        return;
+      }
+
+      if (currentType === "assign-plan") {
+        assignPlanPanel.hidden = false;
+        loadPlans();
+        loadAssignPlanUsers();
         return;
       }
 
@@ -500,10 +535,16 @@ document.addEventListener("DOMContentLoaded", () => {
             <div class="request-detail"><span>Transaction ID</span><strong>${escapeHtml(item.transaction_id)}</strong></div>
             <div class="request-detail"><span>Submitted</span><strong>${formatDate(item.created_at)}</strong></div>
           </div>
-          <button type="button" class="screenshot-thumb" data-src="${API_BASE_URL}/uploads/investments/${item.screenshot_path}">
-            <img src="${API_BASE_URL}/uploads/investments/${item.screenshot_path}" alt="Payment screenshot" loading="lazy" />
-            <span><i class="fa-solid fa-expand"></i> View Screenshot</span>
-          </button>
+          ${
+            item.screenshot_path
+              ? `
+                <button type="button" class="screenshot-thumb" data-src="${API_BASE_URL}/uploads/investments/${item.screenshot_path}">
+                  <img src="${API_BASE_URL}/uploads/investments/${item.screenshot_path}" alt="Payment screenshot" loading="lazy" />
+                  <span><i class="fa-solid fa-expand"></i> View Screenshot</span>
+                </button>
+              `
+              : `<p class="plan-status-note">Admin-assigned — no payment proof.</p>`
+          }
         `
         : `
           <div class="request-card-body">
@@ -1361,6 +1402,148 @@ document.addEventListener("DOMContentLoaded", () => {
     usersSearchDebounce = setTimeout(loadAllUsers, 350);
   });
 
+  // ---------- Assign Plan ----------
+  let assignPlanSearchDebounce = null;
+
+  function renderAssignPlanUsers(users) {
+    if (!users || users.length === 0) {
+      assignPlanUserList.innerHTML = "";
+      assignPlanEmptyState.hidden = false;
+      return;
+    }
+    assignPlanEmptyState.hidden = true;
+
+    assignPlanUserList.innerHTML = users
+      .map(
+        (user) => `
+          <div class="spin-user-card" data-user-id="${user.id}" data-user-name="${escapeHtml(user.full_name)}">
+            <span class="spin-user-avatar">${escapeHtml(initials(user.full_name))}</span>
+            <div class="spin-user-info">
+              <span class="spin-user-name">${escapeHtml(user.full_name)}</span>
+              <span class="spin-user-email">${escapeHtml(user.email)}</span>
+            </div>
+            <div class="spin-user-meta">
+              <span class="spin-user-last">Invested: ${formatPkr(user.total_investment)}</span>
+            </div>
+            <div class="spin-user-actions">
+              <button type="button" class="btn btn-primary btn-sm assign-plan-btn">
+                <i class="fa-solid fa-hand-holding-dollar"></i> Assign Plan
+              </button>
+            </div>
+          </div>
+        `
+      )
+      .join("");
+
+    assignPlanUserList.querySelectorAll(".assign-plan-btn").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const card = btn.closest(".spin-user-card");
+        openAssignPlanModal(card.dataset.userId, card.dataset.userName);
+      });
+    });
+  }
+
+  async function loadAssignPlanUsers() {
+    assignPlanListAlert.className = "auth-alert";
+    const token = getToken();
+    if (!token) return;
+
+    const search = assignPlanUserSearch.value.trim();
+    const url = new URL(`${API_BASE_URL}/api/admin/users`);
+    if (search) url.searchParams.set("search", search);
+
+    try {
+      const res = await fetch(url, { headers: { Authorization: `Bearer ${token}` } });
+      if (!res.ok) {
+        if (res.status === 401 || res.status === 403) {
+          clearToken();
+          showGate();
+          return;
+        }
+        assignPlanListAlert.textContent = "Could not load users.";
+        assignPlanListAlert.className = "auth-alert show error";
+        return;
+      }
+      renderAssignPlanUsers(await res.json());
+    } catch (err) {
+      assignPlanListAlert.textContent = "Could not reach the server. Is the FastAPI backend running?";
+      assignPlanListAlert.className = "auth-alert show error";
+    }
+  }
+
+  assignPlanUserSearch?.addEventListener("input", () => {
+    clearTimeout(assignPlanSearchDebounce);
+    assignPlanSearchDebounce = setTimeout(loadAssignPlanUsers, 350);
+  });
+
+  function openAssignPlanModal(userId, userName) {
+    assignPlanTargetUserId = userId;
+    assignPlanForm.reset();
+    assignPlanAlert.className = "auth-alert";
+    assignPlanModalSubtitle.textContent = `Credit ${userName} with a plan instantly — no proof needed.`;
+
+    assignPlanSelect.innerHTML = allPlans
+      .map((plan) => `<option value="${plan.id}">${escapeHtml(plan.badge_label)} — ${formatPkr(plan.amount)} (${formatPkr(plan.monthly_profit)}/mo)</option>`)
+      .join("");
+
+    assignPlanModalOverlay.classList.add("open");
+    document.body.style.overflow = "hidden";
+  }
+
+  function closeAssignPlanModal() {
+    assignPlanModalOverlay.classList.remove("open");
+    document.body.style.overflow = "";
+    assignPlanTargetUserId = null;
+  }
+
+  assignPlanModalClose?.addEventListener("click", closeAssignPlanModal);
+  assignPlanModalOverlay?.addEventListener("click", (e) => {
+    if (e.target === assignPlanModalOverlay) closeAssignPlanModal();
+  });
+
+  assignPlanForm?.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    assignPlanAlert.className = "auth-alert";
+
+    if (!assignPlanSelect.value) {
+      assignPlanAlert.textContent = "No plans available to assign.";
+      assignPlanAlert.className = "auth-alert show error";
+      return;
+    }
+
+    assignPlanSubmitBtn.classList.add("is-loading");
+    assignPlanSubmitBtn.disabled = true;
+
+    try {
+      const token = getToken();
+      const res = await fetch(`${API_BASE_URL}/api/admin/users/${assignPlanTargetUserId}/assign-investment`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ plan_id: assignPlanSelect.value }),
+      });
+      const data = await res.json();
+
+      if (!res.ok) {
+        assignPlanAlert.textContent = formatApiError(data);
+        assignPlanAlert.className = "auth-alert show error";
+        return;
+      }
+
+      const assignedUserId = assignPlanTargetUserId;
+      closeAssignPlanModal();
+      loadAssignPlanUsers();
+      if (userDetailOverlay.classList.contains("open") && openUserDetailId === assignedUserId) {
+        openUserDetailModal(assignedUserId);
+      }
+    } catch (err) {
+      assignPlanAlert.textContent = "Could not reach the server. Is the FastAPI backend running?";
+      assignPlanAlert.className = "auth-alert show error";
+    } finally {
+      assignPlanSubmitBtn.classList.remove("is-loading");
+      assignPlanSubmitBtn.disabled = false;
+    }
+  });
+
   // ---------- User Detail modal ----------
   function renderInvestmentHistory(container, items, type) {
     if (!items || items.length === 0) {
@@ -1411,7 +1594,11 @@ document.addEventListener("DOMContentLoaded", () => {
     tab.addEventListener("click", () => setHistoryTab(tab.dataset.historyTab));
   });
 
+  let openUserDetailId = null;
+  let openUserDetailUser = null;
+
   async function openUserDetailModal(userId) {
+    openUserDetailId = userId;
     userDetailOverlay.classList.add("open");
     userDetailName.textContent = "Loading…";
     userDetailEmail.textContent = "";
@@ -1430,6 +1617,7 @@ document.addEventListener("DOMContentLoaded", () => {
       }
       const data = await res.json();
       const user = data.user;
+      openUserDetailUser = user;
 
       userDetailAvatar.textContent = initials(user.full_name);
       userDetailName.textContent = user.full_name;
@@ -1456,6 +1644,74 @@ document.addEventListener("DOMContentLoaded", () => {
   userDetailClose?.addEventListener("click", closeUserDetailModal);
   userDetailOverlay?.addEventListener("click", (e) => {
     if (e.target === userDetailOverlay) closeUserDetailModal();
+  });
+
+  userDetailAssignPlanBtn?.addEventListener("click", async () => {
+    if (!openUserDetailId) return;
+    if (allPlans.length === 0) await loadPlans();
+    openAssignPlanModal(openUserDetailId, userDetailName.textContent);
+  });
+
+  // ---------- Edit Balance ----------
+  function openEditBalanceModal() {
+    if (!openUserDetailId || !openUserDetailUser) return;
+    editBalanceForm.reset();
+    editBalanceAlert.className = "auth-alert";
+    editBalanceModalSubtitle.textContent = `Directly overwrite ${openUserDetailUser.full_name}'s My Balance and My Deposit figures.`;
+    editBalanceEarning.value = openUserDetailUser.total_earning;
+    editBalanceInvestment.value = openUserDetailUser.total_investment;
+
+    editBalanceModalOverlay.classList.add("open");
+    document.body.style.overflow = "hidden";
+  }
+
+  function closeEditBalanceModal() {
+    editBalanceModalOverlay.classList.remove("open");
+    document.body.style.overflow = "";
+  }
+
+  userDetailEditBalanceBtn?.addEventListener("click", openEditBalanceModal);
+  editBalanceModalClose?.addEventListener("click", closeEditBalanceModal);
+  editBalanceModalOverlay?.addEventListener("click", (e) => {
+    if (e.target === editBalanceModalOverlay) closeEditBalanceModal();
+  });
+
+  editBalanceForm?.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    editBalanceAlert.className = "auth-alert";
+
+    editBalanceSubmitBtn.classList.add("is-loading");
+    editBalanceSubmitBtn.disabled = true;
+
+    try {
+      const token = getToken();
+      const res = await fetch(`${API_BASE_URL}/api/admin/users/${openUserDetailId}/balance`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({
+          total_earning: Number(editBalanceEarning.value),
+          total_investment: Number(editBalanceInvestment.value),
+        }),
+      });
+      const data = await res.json();
+
+      if (!res.ok) {
+        editBalanceAlert.textContent = formatApiError(data);
+        editBalanceAlert.className = "auth-alert show error";
+        return;
+      }
+
+      closeEditBalanceModal();
+      openUserDetailModal(openUserDetailId);
+      if (currentType === "users") loadAllUsers();
+      if (currentType === "assign-plan") loadAssignPlanUsers();
+    } catch (err) {
+      editBalanceAlert.textContent = "Could not reach the server. Is the FastAPI backend running?";
+      editBalanceAlert.className = "auth-alert show error";
+    } finally {
+      editBalanceSubmitBtn.classList.remove("is-loading");
+      editBalanceSubmitBtn.disabled = false;
+    }
   });
 
   // ---------- Lightbox ----------

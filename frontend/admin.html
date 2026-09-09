@@ -115,6 +115,9 @@
         <button type="button" class="dash-nav-link" data-type="deposit">
           <i class="fa-solid fa-building-columns"></i> Deposit Account
         </button>
+        <button type="button" class="dash-nav-link" data-type="assign-plan">
+          <i class="fa-solid fa-hand-holding-dollar"></i> Assign Plan
+        </button>
         <button type="button" class="dash-nav-link" data-type="users">
           <i class="fa-solid fa-users"></i> All Users
         </button>
@@ -351,6 +354,33 @@
         </div>
       </div>
 
+      <!-- ===== Assign Plan panel ===== -->
+      <div id="assignPlanPanel" hidden>
+        <div class="referral-settings-card">
+          <div class="referral-settings-icon"><i class="fa-solid fa-hand-holding-dollar"></i></div>
+          <div class="referral-settings-info">
+            <h3>Assign Plan</h3>
+            <p>Search a user and credit them with a plan directly — approved instantly, no payment proof needed. For payments received outside the app.</p>
+          </div>
+        </div>
+
+        <div class="auth-alert" id="assignPlanListAlert"></div>
+
+        <div class="spin-search-wrap">
+          <div class="input-wrap">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <input type="text" id="assignPlanUserSearch" placeholder="Search by name or email&hellip;" />
+          </div>
+        </div>
+
+        <div class="spin-user-list" id="assignPlanUserList"></div>
+
+        <div class="empty-state" id="assignPlanEmptyState" hidden>
+          <i class="fa-solid fa-user-magnifying-glass"></i>
+          <p>No users found. Try a different search.</p>
+        </div>
+      </div>
+
     </div>
   </main>
 
@@ -370,6 +400,14 @@
         <h2 id="userDetailName">&nbsp;</h2>
         <p id="userDetailEmail">&nbsp;</p>
         <span class="user-detail-joined" id="userDetailJoined"></span>
+      </div>
+      <div class="user-detail-header-actions">
+        <button type="button" class="btn btn-primary btn-sm" id="userDetailAssignPlanBtn">
+          <i class="fa-solid fa-hand-holding-dollar"></i> Assign Plan
+        </button>
+        <button type="button" class="btn btn-outline btn-sm" id="userDetailEditBalanceBtn">
+          <i class="fa-solid fa-pen"></i> Edit Balance
+        </button>
       </div>
     </div>
 
@@ -404,6 +442,78 @@
       <div class="investment-list" id="userDetailSpins" hidden></div>
       <p class="plan-status-note" id="userDetailEmptyNote" hidden>Nothing here yet.</p>
     </div>
+  </div>
+</div>
+
+<!-- ===== Assign Plan Modal ===== -->
+<div class="modal-overlay" id="assignPlanModalOverlay">
+  <div class="auth-modal" role="dialog" aria-modal="true" aria-labelledby="assignPlanModalTitle">
+    <button class="modal-close" id="assignPlanModalClose" aria-label="Close">
+      <i class="fa-solid fa-xmark"></i>
+    </button>
+
+    <div class="auth-modal-header">
+      <span class="brand-mark"><i class="fa-solid fa-hand-holding-dollar"></i></span>
+      <h2 id="assignPlanModalTitle">Assign Plan</h2>
+      <p id="assignPlanModalSubtitle">Credit this user with a plan instantly — no proof needed.</p>
+    </div>
+
+    <div class="auth-alert" id="assignPlanAlert"></div>
+
+    <form id="assignPlanForm">
+      <div class="form-group">
+        <label for="assignPlanSelect">Plan</label>
+        <div class="input-wrap select-wrap">
+          <i class="fa-solid fa-layer-group"></i>
+          <select id="assignPlanSelect" required></select>
+          <i class="fa-solid fa-chevron-down select-caret"></i>
+        </div>
+      </div>
+
+      <button type="submit" class="btn btn-primary btn-block" id="assignPlanSubmitBtn">
+        <span class="btn-text"><i class="fa-solid fa-check"></i> Assign Plan</span>
+        <i class="fa-solid fa-circle-notch fa-spin btn-spinner"></i>
+      </button>
+    </form>
+  </div>
+</div>
+
+<!-- ===== Edit Balance Modal ===== -->
+<div class="modal-overlay" id="editBalanceModalOverlay">
+  <div class="auth-modal" role="dialog" aria-modal="true" aria-labelledby="editBalanceModalTitle">
+    <button class="modal-close" id="editBalanceModalClose" aria-label="Close">
+      <i class="fa-solid fa-xmark"></i>
+    </button>
+
+    <div class="auth-modal-header">
+      <span class="brand-mark"><i class="fa-solid fa-pen"></i></span>
+      <h2 id="editBalanceModalTitle">Edit Balance</h2>
+      <p id="editBalanceModalSubtitle">Directly overwrite this user's My Balance and My Deposit figures.</p>
+    </div>
+
+    <div class="auth-alert" id="editBalanceAlert"></div>
+
+    <form id="editBalanceForm">
+      <div class="form-group">
+        <label for="editBalanceEarning">My Balance (Rs)</label>
+        <div class="input-wrap">
+          <i class="fa-solid fa-sack-dollar"></i>
+          <input type="number" id="editBalanceEarning" min="0" step="0.01" required />
+        </div>
+      </div>
+      <div class="form-group">
+        <label for="editBalanceInvestment">My Deposit (Rs)</label>
+        <div class="input-wrap">
+          <i class="fa-solid fa-chart-line"></i>
+          <input type="number" id="editBalanceInvestment" min="0" step="0.01" required />
+        </div>
+      </div>
+
+      <button type="submit" class="btn btn-primary btn-block" id="editBalanceSubmitBtn">
+        <span class="btn-text"><i class="fa-solid fa-check"></i> Save Balance</span>
+        <i class="fa-solid fa-circle-notch fa-spin btn-spinner"></i>
+      </button>
+    </form>
   </div>
 </div>
 

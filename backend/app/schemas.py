@@ -116,7 +116,7 @@ class InvestmentOut(BaseModel):
     amount: float
     monthly_profit: float
     transaction_id: str
-    screenshot_path: str
+    screenshot_path: Optional[str] = None
     status: InvestmentStatus
     created_at: datetime
     reviewed_at: Optional[datetime] = None
@@ -130,6 +130,15 @@ class InvestmentOut(BaseModel):
 class RejectionInput(BaseModel):
     reason: Optional[str] = None
     message: Optional[str] = None
+
+
+class AssignInvestmentRequest(BaseModel):
+    plan_id: uuid.UUID
+
+
+class UserBalanceUpdate(BaseModel):
+    total_earning: Optional[float] = Field(default=None, ge=0)
+    total_investment: Optional[float] = Field(default=None, ge=0)
 
 
 class InvestorInfo(BaseModel):

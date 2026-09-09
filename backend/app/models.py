@@ -84,7 +84,8 @@ class InvestmentRequest(Base):
     amount = Column(Numeric(12, 2), nullable=False)
     monthly_profit = Column(Numeric(12, 2), nullable=False)
     transaction_id = Column(String(120), nullable=False)
-    screenshot_path = Column(String(255), nullable=False)
+    # Nullable: admin-assigned investments (no user-submitted proof) have none.
+    screenshot_path = Column(String(255), nullable=True)
     status = Column(Enum(InvestmentStatus), default=InvestmentStatus.pending, nullable=False)
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
     reviewed_at = Column(DateTime, nullable=True)

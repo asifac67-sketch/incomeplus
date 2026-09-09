@@ -62,6 +62,7 @@ COLUMN_MIGRATIONS = [
     "ALTER TABLE withdrawal_requests ADD COLUMN IF NOT EXISTS admin_message TEXT",
     "ALTER TABLE withdrawal_requests ADD COLUMN IF NOT EXISTS bank_name VARCHAR(120)",
     "ALTER TABLE withdrawal_requests ALTER COLUMN account_number TYPE VARCHAR(60)",
+    "ALTER TABLE investment_requests ALTER COLUMN screenshot_path DROP NOT NULL",
 ]
 
 

@@ -59,16 +59,10 @@ def list_investments(
     return query.order_by(models.InvestmentRequest.created_at.desc()).all()
 
 
-@router.patch("/investments/{investment_id}/approve", response_model=schemas.InvestmentAdminOut)
-def approve_investment(
-    investment_id: str,
-    _admin: models.User = Depends(get_current_admin),
-    db: Session = Depends(get_db),
-):
-    investment = _get_pending_record(
-        models.InvestmentRequest, investment_id, db, "investment", allowed_statuses=ACTIVE_STATUSES
-    )
-
+def _approve_investment_record(investment: models.InvestmentRequest, db: Session) -> None:
+    """Shared approval side effects: settle pre-approval earnings at the old
+    rate, credit total_investment, and pay referral commission. Used by both
+    the normal approve endpoint and admin's direct plan-assignment."""
     investor = db.query(models.User).filter(models.User.id == investment.user_id).with_for_update().first()
 
     # Settle whatever's already claimable at the investor's pre-approval daily
@@ -106,6 +100,19 @@ def approve_investment(
                     commission_amount=commission_amount,
                 )
             )
+
+
+@router.patch("/investments/{investment_id}/approve", response_model=schemas.InvestmentAdminOut)
+def approve_investment(
+    investment_id: str,
+    _admin: models.User = Depends(get_current_admin),
+    db: Session = Depends(get_db),
+):
+    investment = _get_pending_record(
+        models.InvestmentRequest, investment_id, db, "investment", allowed_statuses=ACTIVE_STATUSES
+    )
+
+    _approve_investment_record(investment, db)
 
     db.commit()
     db.refresh(investment)
@@ -518,6 +525,75 @@ def get_user_detail(
         spins=spins,
         referred_count=referred_count,
     )
+
+
+@router.post("/users/{user_id}/assign-investment", response_model=schemas.InvestmentAdminOut)
+def assign_investment(
+    user_id: str,
+    payload: schemas.AssignInvestmentRequest,
+    _admin: models.User = Depends(get_current_admin),
+    db: Session = Depends(get_db),
+):
+    """Lets an admin directly credit a user with a plan — e.g. they paid
+    outside the app (bank transfer, in person) — skipping the normal
+    submit-proof-then-approve flow. Created already approved."""
+    try:
+        parsed_id = uuid.UUID(user_id)
+    except ValueError:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid user ID.")
+
+    user = db.query(models.User).filter(models.User.id == parsed_id).first()
+    if not user:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found.")
+
+    plan = db.query(models.InvestmentPlan).filter(models.InvestmentPlan.id == payload.plan_id).first()
+    if not plan:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Investment plan not found.")
+
+    investment = models.InvestmentRequest(
+        user_id=user.id,
+        amount=plan.amount,
+        monthly_profit=plan.monthly_profit,
+        transaction_id="Admin assigned",
+        screenshot_path=None,
+    )
+    db.add(investment)
+    db.flush()
+
+    _approve_investment_record(investment, db)
+
+    db.commit()
+    db.refresh(investment)
+    return investment
+
+
+@router.patch("/users/{user_id}/balance", response_model=schemas.UserOut)
+def update_user_balance(
+    user_id: str,
+    payload: schemas.UserBalanceUpdate,
+    _admin: models.User = Depends(get_current_admin),
+    db: Session = Depends(get_db),
+):
+    """Lets an admin directly overwrite a user's My Balance (total_earning)
+    and/or My Deposit (total_investment) figures — a manual correction tool,
+    separate from the normal claim/approve flows that update these numbers."""
+    try:
+        parsed_id = uuid.UUID(user_id)
+    except ValueError:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid user ID.")
+
+    user = db.query(models.User).filter(models.User.id == parsed_id).with_for_update().first()
+    if not user:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found.")
+
+    if payload.total_earning is not None:
+        user.total_earning = payload.total_earning
+    if payload.total_investment is not None:
+        user.total_investment = payload.total_investment
+
+    db.commit()
+    db.refresh(user)
+    return user
 
 
 # ---------- Wheel Prizes (spin amounts + withdrawal unlock requirements) ----------
