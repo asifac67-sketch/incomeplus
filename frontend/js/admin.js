@@ -1416,7 +1416,7 @@ document.addEventListener("DOMContentLoaded", () => {
     assignPlanUserList.innerHTML = users
       .map(
         (user) => `
-          <div class="spin-user-card" data-user-id="${user.id}" data-user-name="${escapeHtml(user.full_name)}">
+          <div class="spin-user-card" data-user-id="${user.id}" data-user-name="${escapeHtml(user.full_name)}" data-user-earning="${user.total_earning}" data-user-investment="${user.total_investment}">
             <span class="spin-user-avatar">${escapeHtml(initials(user.full_name))}</span>
             <div class="spin-user-info">
               <span class="spin-user-name">${escapeHtml(user.full_name)}</span>
@@ -1429,6 +1429,9 @@ document.addEventListener("DOMContentLoaded", () => {
               <button type="button" class="btn btn-primary btn-sm assign-plan-btn">
                 <i class="fa-solid fa-hand-holding-dollar"></i> Assign Plan
               </button>
+              <button type="button" class="btn btn-outline btn-sm edit-balance-btn">
+                <i class="fa-solid fa-pen"></i> Edit Balance
+              </button>
             </div>
           </div>
         `
@@ -1439,6 +1442,12 @@ document.addEventListener("DOMContentLoaded", () => {
       btn.addEventListener("click", () => {
         const card = btn.closest(".spin-user-card");
         openAssignPlanModal(card.dataset.userId, card.dataset.userName);
+      });
+    });
+    assignPlanUserList.querySelectorAll(".edit-balance-btn").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const card = btn.closest(".spin-user-card");
+        openEditBalanceModal(card.dataset.userId, card.dataset.userName, card.dataset.userEarning, card.dataset.userInvestment);
       });
     });
   }
@@ -1653,13 +1662,15 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   // ---------- Edit Balance ----------
-  function openEditBalanceModal() {
-    if (!openUserDetailId || !openUserDetailUser) return;
+  let editBalanceTargetUserId = null;
+
+  function openEditBalanceModal(userId, userName, totalEarning, totalInvestment) {
+    editBalanceTargetUserId = userId;
     editBalanceForm.reset();
     editBalanceAlert.className = "auth-alert";
-    editBalanceModalSubtitle.textContent = `Directly overwrite ${openUserDetailUser.full_name}'s My Balance and My Deposit figures.`;
-    editBalanceEarning.value = openUserDetailUser.total_earning;
-    editBalanceInvestment.value = openUserDetailUser.total_investment;
+    editBalanceModalSubtitle.textContent = `Directly overwrite ${userName}'s My Balance and My Deposit figures.`;
+    editBalanceEarning.value = totalEarning;
+    editBalanceInvestment.value = totalInvestment;
 
     editBalanceModalOverlay.classList.add("open");
     document.body.style.overflow = "hidden";
@@ -1668,9 +1679,18 @@ document.addEventListener("DOMContentLoaded", () => {
   function closeEditBalanceModal() {
     editBalanceModalOverlay.classList.remove("open");
     document.body.style.overflow = "";
+    editBalanceTargetUserId = null;
   }
 
-  userDetailEditBalanceBtn?.addEventListener("click", openEditBalanceModal);
+  userDetailEditBalanceBtn?.addEventListener("click", () => {
+    if (!openUserDetailId || !openUserDetailUser) return;
+    openEditBalanceModal(
+      openUserDetailId,
+      openUserDetailUser.full_name,
+      openUserDetailUser.total_earning,
+      openUserDetailUser.total_investment
+    );
+  });
   editBalanceModalClose?.addEventListener("click", closeEditBalanceModal);
   editBalanceModalOverlay?.addEventListener("click", (e) => {
     if (e.target === editBalanceModalOverlay) closeEditBalanceModal();
@@ -1685,7 +1705,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     try {
       const token = getToken();
-      const res = await fetch(`${API_BASE_URL}/api/admin/users/${openUserDetailId}/balance`, {
+      const res = await fetch(`${API_BASE_URL}/api/admin/users/${editBalanceTargetUserId}/balance`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
         body: JSON.stringify({
@@ -1701,8 +1721,11 @@ document.addEventListener("DOMContentLoaded", () => {
         return;
       }
 
+      const editedUserId = editBalanceTargetUserId;
       closeEditBalanceModal();
-      openUserDetailModal(openUserDetailId);
+      if (userDetailOverlay.classList.contains("open") && openUserDetailId === editedUserId) {
+        openUserDetailModal(editedUserId);
+      }
       if (currentType === "users") loadAllUsers();
       if (currentType === "assign-plan") loadAssignPlanUsers();
     } catch (err) {

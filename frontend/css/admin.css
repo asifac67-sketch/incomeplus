@@ -448,6 +448,7 @@
 
 .spin-user-card {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: 14px;
   padding: 14px 18px;
@@ -496,7 +497,7 @@
   color: var(--text-muted);
 }
 
-.spin-user-actions { display: flex; gap: 8px; flex-shrink: 0; }
+.spin-user-actions { display: flex; flex-wrap: wrap; gap: 8px; flex-shrink: 0; margin-left: auto; }
 
 .spin-amount-grid {
   display: grid;
