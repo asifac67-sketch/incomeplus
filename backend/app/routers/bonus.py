@@ -98,13 +98,12 @@ def spin_bonus_wheel(
         .filter(models.ForcedBonusSpin.user_id == locked_user.id)
         .first()
     )
-    matching_indices = [i for i, a in enumerate(wheel_amounts) if a == float(forced.amount)] if forced else []
-    if forced and matching_indices:
-        segment_index = matching_indices[0]
-        amount = wheel_amounts[segment_index]
-        # Only consume the forced spin once it actually matched a live segment —
-        # if no segment currently has that amount, leave it in place so it still
-        # applies once the wheel segments are fixed, instead of silently vanishing.
+    if forced:
+        # The forced amount always wins, whether or not it happens to match a
+        # live wheel segment — the admin's chosen figure is the payout. The
+        # wheel animation just lands on whichever segment is visually closest.
+        amount = float(forced.amount)
+        segment_index = min(range(len(wheel_amounts)), key=lambda i: abs(wheel_amounts[i] - amount))
         db.delete(forced)
     else:
         segment_index = random.randrange(len(wheel_amounts))

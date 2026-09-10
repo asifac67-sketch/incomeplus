@@ -96,6 +96,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const forceSpinModalSubtitle = document.getElementById("forceSpinModalSubtitle");
   const forceSpinAlert = document.getElementById("forceSpinAlert");
   const spinAmountGrid = document.getElementById("spinAmountGrid");
+  const forceSpinCustomAmount = document.getElementById("forceSpinCustomAmount");
   const forceSpinSaveBtn = document.getElementById("forceSpinSaveBtn");
 
   const usersPanel = document.getElementById("usersPanel");
@@ -1265,14 +1266,24 @@ document.addEventListener("DOMContentLoaded", () => {
       btn.addEventListener("click", () => {
         spinAmountGrid.querySelectorAll(".spin-amount-option").forEach((b) => b.classList.remove("selected"));
         btn.classList.add("selected");
+        forceSpinCustomAmount.value = "";
         selectedForceAmount = Number(btn.dataset.amount);
       });
     });
   }
 
+  // A custom amount always wins over any grid pick — deselect the grid the
+  // moment the admin types one, and its own value is the source of truth.
+  forceSpinCustomAmount?.addEventListener("input", () => {
+    if (forceSpinCustomAmount.value.trim() === "") return;
+    spinAmountGrid.querySelectorAll(".spin-amount-option").forEach((b) => b.classList.remove("selected"));
+    selectedForceAmount = Number(forceSpinCustomAmount.value);
+  });
+
   function openForceSpinModal(userId, userName) {
     activeForceSpinUser = userId;
     selectedForceAmount = null;
+    forceSpinCustomAmount.value = "";
     forceSpinModalSubtitle.textContent =
       userId === "ALL"
         ? "Choose the amount every user's next spin will land on."
