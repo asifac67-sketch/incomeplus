@@ -170,6 +170,17 @@ class DepositAccount(Base):
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
 
 
+class BonusGateSettings(Base):
+    """The message shown on the 'Invest to Unlock Your Withdrawal' popup when
+    a user's bonus win requires more investment — admin-editable text."""
+
+    __tablename__ = "bonus_gate_settings"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    message = Column(Text, nullable=False)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
+
+
 class ReferralCommission(Base):
     __tablename__ = "referral_commissions"
 

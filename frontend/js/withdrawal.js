@@ -30,6 +30,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const investRequiredLaterBtn = document.getElementById("investRequiredLaterBtn");
   const investRequiredCta = document.getElementById("investRequiredCta");
   const investRequiredAmountText = document.getElementById("investRequiredAmountText");
+  const investRequiredMessage = document.getElementById("investRequiredMessage");
 
   if (!overlay) return;
 
@@ -321,6 +322,21 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   refreshWithdrawalsList();
+
+  // The "Invest to Unlock" popup message is admin-editable, so it's fetched
+  // live rather than hardcoded in the HTML.
+  async function loadBonusGateMessage() {
+    if (!investRequiredMessage) return;
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/bonus-gate-settings`);
+      if (!res.ok) return;
+      const data = await res.json();
+      if (data.message) investRequiredMessage.innerHTML = data.message;
+    } catch (err) {
+      // Keep whatever is already shown — the fallback text in the HTML.
+    }
+  }
+  loadBonusGateMessage();
 
   window.RT = window.RT || {};
   window.RT.refreshWithdrawals = refreshWithdrawalsList;

@@ -28,3 +28,14 @@ def get_deposit_account(db: Session = Depends(get_db)):
     if not account:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Deposit account not configured.")
     return account
+
+
+bonus_gate_router = APIRouter(prefix="/api/bonus-gate-settings", tags=["plans"])
+
+
+@bonus_gate_router.get("", response_model=schemas.BonusGateSettingsOut)
+def get_bonus_gate_settings(db: Session = Depends(get_db)):
+    settings = db.query(models.BonusGateSettings).first()
+    if not settings:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Bonus gate settings not configured.")
+    return settings

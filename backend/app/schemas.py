@@ -269,6 +269,17 @@ class DepositAccountUpdate(BaseModel):
     account_number: str = Field(min_length=1, max_length=60)
 
 
+class BonusGateSettingsOut(BaseModel):
+    message: str
+
+    class Config:
+        from_attributes = True
+
+
+class BonusGateSettingsUpdate(BaseModel):
+    message: str = Field(min_length=1, max_length=2000)
+
+
 class WheelSegmentOut(BaseModel):
     position: int
     amount: float

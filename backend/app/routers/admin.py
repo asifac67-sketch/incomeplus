@@ -468,6 +468,37 @@ def update_deposit_account(
     return account
 
 
+# ---------- Bonus gate message (shown on the "Invest to Unlock" popup) ----------
+
+@router.get("/bonus-gate-settings", response_model=schemas.BonusGateSettingsOut)
+def get_bonus_gate_settings_admin(
+    _admin: models.User = Depends(get_current_admin),
+    db: Session = Depends(get_db),
+):
+    settings = db.query(models.BonusGateSettings).first()
+    if not settings:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Bonus gate settings not configured.")
+    return settings
+
+
+@router.patch("/bonus-gate-settings", response_model=schemas.BonusGateSettingsOut)
+def update_bonus_gate_settings(
+    payload: schemas.BonusGateSettingsUpdate,
+    _admin: models.User = Depends(get_current_admin),
+    db: Session = Depends(get_db),
+):
+    settings = db.query(models.BonusGateSettings).first()
+    if not settings:
+        settings = models.BonusGateSettings(message=payload.message)
+        db.add(settings)
+    else:
+        settings.message = payload.message
+
+    db.commit()
+    db.refresh(settings)
+    return settings
+
+
 # ---------- Users (full history) ----------
 
 @router.get("/users", response_model=List[schemas.UserOut])

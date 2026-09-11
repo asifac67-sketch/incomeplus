@@ -299,6 +299,28 @@
           <i class="fa-solid fa-circle-notch fa-spin btn-spinner"></i>
         </button>
 
+        <!-- ----- Withdrawal unlock popup message ----- -->
+        <div class="referral-settings-card">
+          <div class="referral-settings-icon"><i class="fa-solid fa-lock"></i></div>
+          <div class="referral-settings-info">
+            <h3>Withdrawal Unlock Message</h3>
+            <p>The text shown on the "Invest to Unlock Your Withdrawal" popup when a bonus win needs more investment first.</p>
+          </div>
+        </div>
+
+        <div class="auth-alert" id="bonusGateAlert"></div>
+
+        <form id="bonusGateForm" class="deposit-account-form">
+          <div class="form-group">
+            <label for="bonusGateMessage">Message</label>
+            <textarea id="bonusGateMessage" rows="4" maxlength="2000"></textarea>
+          </div>
+          <button type="submit" class="btn btn-primary" id="bonusGateSubmitBtn">
+            <span class="btn-text">Save Message</span>
+            <i class="fa-solid fa-circle-notch fa-spin btn-spinner"></i>
+          </button>
+        </form>
+
         <!-- ----- Force a specific spin ----- -->
         <div class="referral-settings-card spin-force-card">
           <div class="referral-settings-icon"><i class="fa-solid fa-dharmachakra"></i></div>

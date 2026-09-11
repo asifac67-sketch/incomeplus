@@ -85,6 +85,10 @@ document.addEventListener("DOMContentLoaded", () => {
   const depositAccountSubmitBtn = document.getElementById("depositAccountSubmitBtn");
 
   const spinPanel = document.getElementById("spinPanel");
+  const bonusGateAlert = document.getElementById("bonusGateAlert");
+  const bonusGateForm = document.getElementById("bonusGateForm");
+  const bonusGateMessage = document.getElementById("bonusGateMessage");
+  const bonusGateSubmitBtn = document.getElementById("bonusGateSubmitBtn");
   const spinAlert = document.getElementById("spinAlert");
   const spinUserSearch = document.getElementById("spinUserSearch");
   const spinUserList = document.getElementById("spinUserList");
@@ -375,6 +379,7 @@ document.addEventListener("DOMContentLoaded", () => {
       if (currentType === "spin") {
         spinPanel.hidden = false;
         loadWheelSegments();
+        loadBonusGateSettings();
         loadSpinUsers();
         return;
       }
@@ -1125,6 +1130,68 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
+  // ---------- Withdrawal unlock popup message ----------
+  function showBonusGateAlert(message, type = "error") {
+    bonusGateAlert.textContent = message;
+    bonusGateAlert.className = `auth-alert show ${type}`;
+  }
+
+  async function loadBonusGateSettings() {
+    bonusGateAlert.className = "auth-alert";
+    const token = getToken();
+    if (!token) return;
+
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/admin/bonus-gate-settings`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!res.ok) {
+        if (res.status === 401 || res.status === 403) {
+          clearToken();
+          showGate();
+          return;
+        }
+        showBonusGateAlert("Could not load the message.");
+        return;
+      }
+      const data = await res.json();
+      bonusGateMessage.value = data.message;
+    } catch (err) {
+      showBonusGateAlert("Could not reach the server. Is the FastAPI backend running?");
+    }
+  }
+
+  bonusGateForm?.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    bonusGateAlert.className = "auth-alert";
+
+    bonusGateSubmitBtn.classList.add("is-loading");
+    bonusGateSubmitBtn.disabled = true;
+
+    try {
+      const token = getToken();
+      const res = await fetch(`${API_BASE_URL}/api/admin/bonus-gate-settings`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ message: bonusGateMessage.value.trim() }),
+      });
+      const data = await res.json();
+
+      if (!res.ok) {
+        showBonusGateAlert(formatApiError(data));
+        return;
+      }
+
+      bonusGateMessage.value = data.message;
+      showBonusGateAlert("Withdrawal unlock message updated.", "success");
+    } catch (err) {
+      showBonusGateAlert("Could not reach the server. Is the FastAPI backend running?");
+    } finally {
+      bonusGateSubmitBtn.classList.remove("is-loading");
+      bonusGateSubmitBtn.disabled = false;
+    }
+  });
+
   // ---------- Spin Control ----------
   let spinSearchDebounce = null;
   let activeForceSpinUser = null;
@@ -1258,7 +1325,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // ---------- Force Spin modal ----------
   function renderSpinAmountGrid() {
-    spinAmountGrid.innerHTML = wheelPrizeOptions.map(
+    // Several wheel segments are often the same amount (e.g. multiple "Rs 0"
+    // no-win slots) — de-dupe so the picker isn't full of identical buttons.
+    const uniqueAmounts = [...new Set(wheelPrizeOptions)];
+    spinAmountGrid.innerHTML = uniqueAmounts.map(
       (amount) => `<button type="button" class="spin-amount-option" data-amount="${amount}">${formatPkr(amount)}</button>`
     ).join("");
 

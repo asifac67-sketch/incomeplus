@@ -108,6 +108,17 @@ def on_startup():
                 )
             )
             db.commit()
+
+        if db.query(models.BonusGateSettings).count() == 0:
+            db.add(
+                models.BonusGateSettings(
+                    message=(
+                        "Your bonus win qualifies for our <strong>big-winner</strong> tier. "
+                        "To keep payouts safe and secure, withdrawals unlock once you've invested the amount below."
+                    )
+                )
+            )
+            db.commit()
     finally:
         db.close()
 
@@ -124,4 +135,5 @@ app.include_router(bonus.router)
 app.include_router(withdrawal.router)
 app.include_router(plans.router)
 app.include_router(plans.deposit_router)
+app.include_router(plans.bonus_gate_router)
 app.include_router(referrals.router)
