@@ -499,6 +499,32 @@
 
 .spin-user-actions { display: flex; flex-wrap: wrap; gap: 8px; flex-shrink: 0; margin-left: auto; }
 
+/* Manual withdrawal check */
+.withdrawal-check-all-actions { display: flex; flex-wrap: wrap; gap: 12px; }
+.withdrawal-check-all-actions .btn { flex-shrink: 0; }
+
+.spin-user-gate {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 10px;
+  border-radius: var(--radius-pill);
+  background: rgba(255, 107, 107, 0.16);
+  color: #ff8080;
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
+.spin-user-gate-message {
+  display: block;
+  max-width: 280px;
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .spin-amount-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);

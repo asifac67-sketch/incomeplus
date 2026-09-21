@@ -280,6 +280,22 @@ class BonusGateSettingsUpdate(BaseModel):
     message: str = Field(min_length=1, max_length=2000)
 
 
+class WithdrawalGateUpdate(BaseModel):
+    required_investment: float = Field(gt=0)
+    message: Optional[str] = Field(default=None, max_length=2000)
+
+
+class WithdrawalGateUserOut(BaseModel):
+    id: uuid.UUID
+    full_name: str
+    email: EmailStr
+    gate_required: Optional[float] = None
+    gate_message: Optional[str] = None
+
+    class Config:
+        from_attributes = True
+
+
 class WheelSegmentOut(BaseModel):
     position: int
     amount: float

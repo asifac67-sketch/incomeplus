@@ -31,11 +31,14 @@ document.addEventListener("DOMContentLoaded", () => {
   const investRequiredCta = document.getElementById("investRequiredCta");
   const investRequiredAmountText = document.getElementById("investRequiredAmountText");
   const investRequiredMessage = document.getElementById("investRequiredMessage");
+  const investRequiredBadge = document.getElementById("investRequiredBadge");
 
   if (!overlay) return;
 
   let selectedProvider = "easypaisa";
   let availableBalance = 0;
+  let bonusGateMessageText = "";
+  let gateMessageOverride = null;
 
   function formatPkr(amount) {
     return `Rs ${Number(amount).toLocaleString("en-US")}`;
@@ -91,7 +94,7 @@ document.addEventListener("DOMContentLoaded", () => {
       if (gateRes.ok) {
         gateData = await gateRes.json();
         if (gateData.gated) {
-          openInvestRequiredModal(gateData.required_investment);
+          openInvestRequiredModal(gateData.required_investment, gateData.message, gateData.source);
           return;
         }
       }
@@ -123,11 +126,33 @@ document.addEventListener("DOMContentLoaded", () => {
     document.body.style.overflow = "";
   }
 
-  // ---------- Investment-required gate (big bonus winners) ----------
-  function openInvestRequiredModal(requiredAmount) {
+  // ---------- Investment-required gate (bonus winners + admin checks) ----------
+  // `message` is the admin's custom text for a manual check; when absent, the
+  // generic bonus-gate message is used instead.
+  function openInvestRequiredModal(requiredAmount, message, source) {
     if (investRequiredAmountText && requiredAmount) {
       investRequiredAmountText.textContent = formatPkr(requiredAmount);
     }
+
+    if (investRequiredBadge) {
+      const isManual = source === "manual";
+      investRequiredBadge.innerHTML = isManual
+        ? '<i class="fa-solid fa-user-lock"></i> Account Check Required'
+        : '<i class="fa-solid fa-star"></i> Bonus Unlock Required';
+    }
+
+    if (message && message.trim()) {
+      gateMessageOverride = message;
+      investRequiredMessage.textContent = message;
+    } else {
+      gateMessageOverride = null;
+      if (bonusGateMessageText) {
+        investRequiredMessage.innerHTML = bonusGateMessageText;
+      } else {
+        loadBonusGateMessage();
+      }
+    }
+
     investRequiredOverlay?.classList.add("open");
     document.body.style.overflow = "hidden";
   }
@@ -216,7 +241,7 @@ document.addEventListener("DOMContentLoaded", () => {
       if (!res.ok) {
         if (data.detail && data.detail.code === "BONUS_INVESTMENT_REQUIRED") {
           closeWithdrawalModal();
-          openInvestRequiredModal(data.detail.required_investment);
+          openInvestRequiredModal(data.detail.required_investment, data.detail.message, data.detail.source);
           return;
         }
         showAlert(formatApiError(data));
@@ -331,7 +356,11 @@ document.addEventListener("DOMContentLoaded", () => {
       const res = await fetch(`${API_BASE_URL}/api/bonus-gate-settings`);
       if (!res.ok) return;
       const data = await res.json();
-      if (data.message) investRequiredMessage.innerHTML = data.message;
+      if (data.message) {
+        bonusGateMessageText = data.message;
+        // Don't clobber an admin's custom check message that's already showing.
+        if (!gateMessageOverride) investRequiredMessage.innerHTML = data.message;
+      }
     } catch (err) {
       // Keep whatever is already shown — the fallback text in the HTML.
     }

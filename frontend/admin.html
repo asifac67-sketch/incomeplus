@@ -112,6 +112,9 @@
         <button type="button" class="dash-nav-link" data-type="spin">
           <i class="fa-solid fa-dharmachakra"></i> Spin Control
         </button>
+        <button type="button" class="dash-nav-link" data-type="withdrawal-check">
+          <i class="fa-solid fa-lock"></i> Withdrawal Check
+        </button>
         <button type="button" class="dash-nav-link" data-type="deposit">
           <i class="fa-solid fa-building-columns"></i> Deposit Account
         </button>
@@ -351,6 +354,68 @@
         </div>
       </div>
 
+      <!-- ===== Withdrawal Check panel ===== -->
+      <div id="withdrawalCheckPanel" hidden>
+        <div class="referral-settings-card">
+          <div class="referral-settings-icon"><i class="fa-solid fa-lock"></i></div>
+          <div class="referral-settings-info">
+            <h3>Manual Withdrawal Check</h3>
+            <p>Put a check on a user (or every user at once). Until they invest the amount you set — after the check is applied — they can't withdraw. Your message shows on their "Invest to Unlock Your Withdrawal" popup.</p>
+          </div>
+        </div>
+
+        <div class="auth-alert" id="withdrawalCheckAlert"></div>
+
+        <!-- Apply to all users -->
+        <form id="withdrawalCheckAllForm" class="deposit-account-form">
+          <div class="form-grid-2">
+            <div class="form-group">
+              <label for="withdrawalCheckAllAmount">Amount to invest (Rs)</label>
+              <div class="input-wrap">
+                <i class="fa-solid fa-money-bill"></i>
+                <input type="number" id="withdrawalCheckAllAmount" min="1" step="1" placeholder="e.g. 5000" required />
+              </div>
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="withdrawalCheckAllMessage">Message shown to users (optional)</label>
+            <textarea id="withdrawalCheckAllMessage" rows="3" maxlength="2000" placeholder="e.g. To keep payouts safe, please invest Rs 5,000 more to unlock your withdrawal."></textarea>
+          </div>
+          <div class="withdrawal-check-all-actions">
+            <button type="submit" class="btn btn-primary" id="withdrawalCheckAllBtn">
+              <span class="btn-text"><i class="fa-solid fa-users-gear"></i> Apply Check to All Users</span>
+              <i class="fa-solid fa-circle-notch fa-spin btn-spinner"></i>
+            </button>
+            <button type="button" class="btn btn-outline" id="withdrawalCheckClearAllBtn">
+              <i class="fa-solid fa-broom"></i> <span>Clear All Checks</span>
+            </button>
+          </div>
+        </form>
+
+        <!-- Per-user check -->
+        <div class="referral-settings-card spin-force-card">
+          <div class="referral-settings-icon"><i class="fa-solid fa-user-lock"></i></div>
+          <div class="referral-settings-info">
+            <h3>Per-User Check</h3>
+            <p>Search a user and set a specific amount and message for their account.</p>
+          </div>
+        </div>
+
+        <div class="spin-search-wrap">
+          <div class="input-wrap">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <input type="text" id="withdrawalCheckUserSearch" placeholder="Search by name or email&hellip;" />
+          </div>
+        </div>
+
+        <div class="spin-user-list" id="withdrawalCheckUserList"></div>
+
+        <div class="empty-state" id="withdrawalCheckEmptyState" hidden>
+          <i class="fa-solid fa-user-magnifying-glass"></i>
+          <p>No users found. Try a different search.</p>
+        </div>
+      </div>
+
       <!-- ===== All Users panel ===== -->
       <div id="usersPanel" hidden>
         <div class="referral-settings-card">
@@ -568,6 +633,43 @@
       <span class="btn-text">Set Result</span>
       <i class="fa-solid fa-circle-notch fa-spin btn-spinner"></i>
     </button>
+  </div>
+</div>
+
+<!-- ===== Set Withdrawal Check Modal ===== -->
+<div class="modal-overlay" id="withdrawalCheckModalOverlay">
+  <div class="auth-modal" role="dialog" aria-modal="true" aria-labelledby="withdrawalCheckModalTitle">
+    <button class="modal-close" id="withdrawalCheckModalClose" aria-label="Close">
+      <i class="fa-solid fa-xmark"></i>
+    </button>
+
+    <div class="auth-modal-header">
+      <span class="brand-mark"><i class="fa-solid fa-lock"></i></span>
+      <h2 id="withdrawalCheckModalTitle">Set Withdrawal Check</h2>
+      <p id="withdrawalCheckModalSubtitle">Set the amount this user must invest to unlock withdrawals.</p>
+    </div>
+
+    <div class="auth-alert" id="withdrawalCheckModalAlert"></div>
+
+    <form id="withdrawalCheckForm">
+      <div class="form-group">
+        <label for="withdrawalCheckAmount">Amount to invest (Rs)</label>
+        <div class="input-wrap">
+          <i class="fa-solid fa-money-bill"></i>
+          <input type="number" id="withdrawalCheckAmount" min="1" step="1" placeholder="e.g. 5000" required />
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="withdrawalCheckMessage">Message shown to the user (optional)</label>
+        <textarea id="withdrawalCheckMessage" rows="4" maxlength="2000" placeholder="e.g. To keep payouts safe, please invest Rs 5,000 more to unlock your withdrawal."></textarea>
+      </div>
+
+      <button type="submit" class="btn btn-primary btn-block" id="withdrawalCheckSubmitBtn">
+        <span class="btn-text"><i class="fa-solid fa-check"></i> Save Check</span>
+        <i class="fa-solid fa-circle-notch fa-spin btn-spinner"></i>
+      </button>
+    </form>
   </div>
 </div>
 

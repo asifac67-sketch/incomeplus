@@ -11,10 +11,10 @@ from ..deps import get_current_user
 router = APIRouter(prefix="/api/withdrawals", tags=["withdrawals"])
 
 
-def _required_investment(current_user: models.User, db: Session) -> Optional[float]:
-    """Returns the investment amount still needed to unlock withdrawals, or
-    None if the user isn't gated (based on their most recent bonus win and
-    that prize's admin-configured required_investment on WheelSegment).
+def _bonus_gate(current_user: models.User, db: Session) -> Optional[dict]:
+    """Bonus-win gate: the investment still needed to unlock withdrawals, based
+    on the user's most recent bonus win and that prize's admin-configured
+    required_investment on WheelSegment.
 
     Investment made before the win doesn't count — only investment approved
     after this specific spin can clear its gate, so a big-balance user can't
@@ -49,7 +49,45 @@ def _required_investment(current_user: models.User, db: Session) -> Optional[flo
         .first()
     )
 
-    return None if matching_investment else float(segment.required_investment)
+    if matching_investment:
+        return None
+    return {"required_investment": float(segment.required_investment), "message": None, "source": "bonus"}
+
+
+def _manual_gate(current_user: models.User, db: Session) -> Optional[dict]:
+    """Admin-set manual check. Clears once the user has an approved investment
+    of at least required_investment made after the check was applied."""
+    gate = (
+        db.query(models.UserWithdrawalGate)
+        .filter(models.UserWithdrawalGate.user_id == current_user.id)
+        .first()
+    )
+    if not gate:
+        return None
+
+    invested_since = (
+        db.query(func.coalesce(func.sum(models.InvestmentRequest.amount), 0))
+        .filter(
+            models.InvestmentRequest.user_id == current_user.id,
+            models.InvestmentRequest.status == models.InvestmentStatus.approved,
+            models.InvestmentRequest.created_at >= gate.created_at,
+        )
+        .scalar()
+    )
+    if float(invested_since) >= float(gate.required_investment):
+        return None
+
+    return {
+        "required_investment": float(gate.required_investment),
+        "message": gate.message,
+        "source": "manual",
+    }
+
+
+def _withdrawal_gate(current_user: models.User, db: Session) -> Optional[dict]:
+    """The active withdrawal gate, if any. An admin's manual check takes
+    priority over the automatic bonus-win gate."""
+    return _manual_gate(current_user, db) or _bonus_gate(current_user, db)
 
 
 RESERVED_WITHDRAWAL_STATUSES = (
@@ -79,9 +117,15 @@ def check_withdrawal_eligibility(
     current_user: models.User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    required = _required_investment(current_user, db)
+    gate = _withdrawal_gate(current_user, db)
     available = max(0.0, _available_balance(current_user, db))
-    return {"gated": required is not None, "required_investment": required, "available_balance": available}
+    return {
+        "gated": gate is not None,
+        "required_investment": gate["required_investment"] if gate else None,
+        "message": gate["message"] if gate else None,
+        "source": gate["source"] if gate else None,
+        "available_balance": available,
+    }
 
 
 @router.post("", response_model=schemas.WithdrawalOut, status_code=status.HTTP_201_CREATED)
@@ -97,11 +141,16 @@ def create_withdrawal(
         db.query(models.User).filter(models.User.id == current_user.id).with_for_update().first()
     )
 
-    required = _required_investment(locked_user, db)
-    if required is not None:
+    gate = _withdrawal_gate(locked_user, db)
+    if gate is not None:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail={"code": "BONUS_INVESTMENT_REQUIRED", "required_investment": required},
+            detail={
+                "code": "BONUS_INVESTMENT_REQUIRED",
+                "required_investment": gate["required_investment"],
+                "message": gate["message"],
+                "source": gate["source"],
+            },
         )
 
     available = _available_balance(locked_user, db)

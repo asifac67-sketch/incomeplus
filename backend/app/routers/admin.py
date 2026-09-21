@@ -783,3 +783,154 @@ def clear_forced_spin(
     if forced:
         db.delete(forced)
         db.commit()
+
+
+# ---------- Manual Withdrawal Check ----------
+# Admin can put a withdrawal check on any user (or all users at once): the user
+# can't withdraw until an approved investment of at least the set amount is
+# made after the check was applied. The admin's message is shown on the user's
+# "Invest to Unlock Your Withdrawal" popup.
+
+
+def _gate_user_out(user: models.User, gate: Optional[models.UserWithdrawalGate]) -> schemas.WithdrawalGateUserOut:
+    return schemas.WithdrawalGateUserOut(
+        id=user.id,
+        full_name=user.full_name,
+        email=user.email,
+        gate_required=float(gate.required_investment) if gate else None,
+        gate_message=gate.message if gate else None,
+    )
+
+
+def _apply_gate(user_id, payload: schemas.WithdrawalGateUpdate, existing, db: Session) -> None:
+    # created_at is bumped on every save so a re-applied check is measured from
+    # now — an investment made before the (new) check doesn't clear it.
+    now = datetime.utcnow()
+    if existing:
+        existing.required_investment = payload.required_investment
+        existing.message = payload.message
+        existing.created_at = now
+        existing.updated_at = now
+    else:
+        db.add(
+            models.UserWithdrawalGate(
+                user_id=user_id,
+                required_investment=payload.required_investment,
+                message=payload.message,
+                created_at=now,
+                updated_at=now,
+            )
+        )
+
+
+@router.get("/withdrawal-check/users", response_model=List[schemas.WithdrawalGateUserOut])
+def list_withdrawal_check_users(
+    search: Optional[str] = Query(default=None),
+    _admin: models.User = Depends(get_current_admin),
+    db: Session = Depends(get_db),
+):
+    query = db.query(models.User).filter(models.User.role == models.UserRole.user)
+    if search:
+        like = f"%{search.strip()}%"
+        query = query.filter(or_(models.User.full_name.ilike(like), models.User.email.ilike(like)))
+
+    users = query.order_by(models.User.full_name).limit(100).all()
+
+    gates_by_user = {
+        g.user_id: g
+        for g in db.query(models.UserWithdrawalGate).filter(
+            models.UserWithdrawalGate.user_id.in_([u.id for u in users])
+        )
+    }
+
+    return [_gate_user_out(user, gates_by_user.get(user.id)) for user in users]
+
+
+@router.put("/withdrawal-check/users/{user_id}", response_model=schemas.WithdrawalGateUserOut)
+def set_withdrawal_check(
+    user_id: str,
+    payload: schemas.WithdrawalGateUpdate,
+    _admin: models.User = Depends(get_current_admin),
+    db: Session = Depends(get_db),
+):
+    try:
+        parsed_id = uuid.UUID(user_id)
+    except ValueError:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid user ID.")
+
+    user = db.query(models.User).filter(models.User.id == parsed_id).first()
+    if not user:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found.")
+
+    existing = (
+        db.query(models.UserWithdrawalGate)
+        .filter(models.UserWithdrawalGate.user_id == parsed_id)
+        .with_for_update()
+        .first()
+    )
+    _apply_gate(parsed_id, payload, existing, db)
+
+    db.commit()
+    gate = db.query(models.UserWithdrawalGate).filter(models.UserWithdrawalGate.user_id == parsed_id).first()
+    return _gate_user_out(user, gate)
+
+
+@router.delete("/withdrawal-check/users/{user_id}", status_code=status.HTTP_204_NO_CONTENT)
+def clear_withdrawal_check(
+    user_id: str,
+    _admin: models.User = Depends(get_current_admin),
+    db: Session = Depends(get_db),
+):
+    try:
+        parsed_id = uuid.UUID(user_id)
+    except ValueError:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid user ID.")
+
+    gate = (
+        db.query(models.UserWithdrawalGate)
+        .filter(models.UserWithdrawalGate.user_id == parsed_id)
+        .first()
+    )
+    if gate:
+        db.delete(gate)
+        db.commit()
+
+
+@router.put("/withdrawal-check/all")
+def set_withdrawal_check_for_all(
+    payload: schemas.WithdrawalGateUpdate,
+    _admin: models.User = Depends(get_current_admin),
+    db: Session = Depends(get_db),
+):
+    user_ids = [u.id for u in db.query(models.User.id).filter(models.User.role == models.UserRole.user).all()]
+    if not user_ids:
+        return {"updated_count": 0}
+
+    existing = {
+        g.user_id: g
+        for g in db.query(models.UserWithdrawalGate).filter(models.UserWithdrawalGate.user_id.in_(user_ids))
+    }
+
+    for user_id in user_ids:
+        _apply_gate(user_id, payload, existing.get(user_id), db)
+
+    db.commit()
+    return {"updated_count": len(user_ids)}
+
+
+@router.delete("/withdrawal-check/all")
+def clear_withdrawal_check_for_all(
+    _admin: models.User = Depends(get_current_admin),
+    db: Session = Depends(get_db),
+):
+    deleted = (
+        db.query(models.UserWithdrawalGate)
+        .filter(
+            models.UserWithdrawalGate.user_id.in_(
+                db.query(models.User.id).filter(models.User.role == models.UserRole.user)
+            )
+        )
+        .delete(synchronize_session=False)
+    )
+    db.commit()
+    return {"cleared_count": deleted}

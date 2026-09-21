@@ -181,6 +181,24 @@ class BonusGateSettings(Base):
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
 
 
+class UserWithdrawalGate(Base):
+    """Admin-set manual withdrawal check for a specific user. While active — and
+    not yet satisfied by an approved investment of at least required_investment
+    made after the check was set — the user can't withdraw. `message` is the
+    admin-authored text shown on the 'Invest to Unlock' popup."""
+
+    __tablename__ = "user_withdrawal_gates"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False, unique=True, index=True)
+    required_investment = Column(Numeric(12, 2), nullable=False)
+    message = Column(Text, nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
+
+    user = relationship("User")
+
+
 class ReferralCommission(Base):
     __tablename__ = "referral_commissions"
 

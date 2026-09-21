@@ -103,6 +103,26 @@ document.addEventListener("DOMContentLoaded", () => {
   const forceSpinCustomAmount = document.getElementById("forceSpinCustomAmount");
   const forceSpinSaveBtn = document.getElementById("forceSpinSaveBtn");
 
+  const withdrawalCheckPanel = document.getElementById("withdrawalCheckPanel");
+  const withdrawalCheckAlert = document.getElementById("withdrawalCheckAlert");
+  const withdrawalCheckAllForm = document.getElementById("withdrawalCheckAllForm");
+  const withdrawalCheckAllAmount = document.getElementById("withdrawalCheckAllAmount");
+  const withdrawalCheckAllMessage = document.getElementById("withdrawalCheckAllMessage");
+  const withdrawalCheckAllBtn = document.getElementById("withdrawalCheckAllBtn");
+  const withdrawalCheckClearAllBtn = document.getElementById("withdrawalCheckClearAllBtn");
+  const withdrawalCheckUserSearch = document.getElementById("withdrawalCheckUserSearch");
+  const withdrawalCheckUserList = document.getElementById("withdrawalCheckUserList");
+  const withdrawalCheckEmptyState = document.getElementById("withdrawalCheckEmptyState");
+
+  const withdrawalCheckModalOverlay = document.getElementById("withdrawalCheckModalOverlay");
+  const withdrawalCheckModalClose = document.getElementById("withdrawalCheckModalClose");
+  const withdrawalCheckModalSubtitle = document.getElementById("withdrawalCheckModalSubtitle");
+  const withdrawalCheckModalAlert = document.getElementById("withdrawalCheckModalAlert");
+  const withdrawalCheckForm = document.getElementById("withdrawalCheckForm");
+  const withdrawalCheckAmount = document.getElementById("withdrawalCheckAmount");
+  const withdrawalCheckMessage = document.getElementById("withdrawalCheckMessage");
+  const withdrawalCheckSubmitBtn = document.getElementById("withdrawalCheckSubmitBtn");
+
   const usersPanel = document.getElementById("usersPanel");
   const usersSearch = document.getElementById("usersSearch");
   const usersList = document.getElementById("usersList");
@@ -339,6 +359,7 @@ document.addEventListener("DOMContentLoaded", () => {
     plans: "Investment Plans",
     referrals: "Referral Program",
     spin: "Spin Control",
+    "withdrawal-check": "Withdrawal Check",
     deposit: "Deposit Account",
     "assign-plan": "Assign Plan",
     users: "All Users",
@@ -349,6 +370,7 @@ document.addEventListener("DOMContentLoaded", () => {
     plansPanel.hidden = true;
     referralsPanel.hidden = true;
     spinPanel.hidden = true;
+    withdrawalCheckPanel.hidden = true;
     depositPanel.hidden = true;
     assignPlanPanel.hidden = true;
     usersPanel.hidden = true;
@@ -381,6 +403,12 @@ document.addEventListener("DOMContentLoaded", () => {
         loadWheelSegments();
         loadBonusGateSettings();
         loadSpinUsers();
+        return;
+      }
+
+      if (currentType === "withdrawal-check") {
+        withdrawalCheckPanel.hidden = false;
+        loadWithdrawalCheckUsers();
         return;
       }
 
@@ -1417,6 +1445,263 @@ document.addEventListener("DOMContentLoaded", () => {
     } finally {
       forceSpinSaveBtn.classList.remove("is-loading");
       forceSpinSaveBtn.disabled = false;
+    }
+  });
+
+  // ---------- Manual Withdrawal Check ----------
+  let withdrawalCheckSearchDebounce = null;
+  let withdrawalCheckTargetUserId = null;
+  let withdrawalCheckUsers = [];
+
+  function showWithdrawalCheckAlert(message, type = "error") {
+    withdrawalCheckAlert.textContent = message;
+    withdrawalCheckAlert.className = `auth-alert show ${type}`;
+  }
+  function clearWithdrawalCheckAlert() {
+    withdrawalCheckAlert.textContent = "";
+    withdrawalCheckAlert.className = "auth-alert";
+  }
+
+  function renderWithdrawalCheckUsers(users) {
+    withdrawalCheckUsers = users || [];
+
+    if (withdrawalCheckUsers.length === 0) {
+      withdrawalCheckUserList.innerHTML = "";
+      withdrawalCheckEmptyState.hidden = false;
+      return;
+    }
+    withdrawalCheckEmptyState.hidden = true;
+
+    withdrawalCheckUserList.innerHTML = withdrawalCheckUsers
+      .map((user) => {
+        const hasGate = user.gate_required !== null && user.gate_required !== undefined;
+        const gateBadge = hasGate
+          ? `<span class="spin-user-gate"><i class="fa-solid fa-lock"></i> Check: ${formatPkr(user.gate_required)}</span>`
+          : `<span class="spin-user-last">No check</span>`;
+        const gateMessage =
+          hasGate && user.gate_message
+            ? `<span class="spin-user-gate-message">${escapeHtml(user.gate_message)}</span>`
+            : "";
+
+        return `
+          <div class="spin-user-card" data-user-id="${user.id}">
+            <span class="spin-user-avatar">${escapeHtml(initials(user.full_name))}</span>
+            <div class="spin-user-info">
+              <span class="spin-user-name">${escapeHtml(user.full_name)}</span>
+              <span class="spin-user-email">${escapeHtml(user.email)}</span>
+            </div>
+            <div class="spin-user-meta">
+              ${gateBadge}
+              ${gateMessage}
+            </div>
+            <div class="spin-user-actions">
+              <button type="button" class="btn btn-primary btn-sm gate-set-btn" data-id="${user.id}">
+                <i class="fa-solid fa-lock"></i> ${hasGate ? "Edit Check" : "Set Check"}
+              </button>
+              ${
+                hasGate
+                  ? `<button type="button" class="btn btn-outline btn-sm gate-clear-btn" data-id="${user.id}"><i class="fa-solid fa-xmark"></i> Clear</button>`
+                  : ""
+              }
+            </div>
+          </div>
+        `;
+      })
+      .join("");
+
+    withdrawalCheckUserList.querySelectorAll(".gate-set-btn").forEach((btn) => {
+      btn.addEventListener("click", () => openWithdrawalCheckModal(btn.dataset.id));
+    });
+    withdrawalCheckUserList.querySelectorAll(".gate-clear-btn").forEach((btn) => {
+      btn.addEventListener("click", () => clearWithdrawalCheck(btn.dataset.id));
+    });
+  }
+
+  async function loadWithdrawalCheckUsers() {
+    clearWithdrawalCheckAlert();
+    const token = getToken();
+    if (!token) return;
+
+    const search = withdrawalCheckUserSearch.value.trim();
+    const url = new URL(`${API_BASE_URL}/api/admin/withdrawal-check/users`);
+    if (search) url.searchParams.set("search", search);
+
+    try {
+      const res = await fetch(url, { headers: { Authorization: `Bearer ${token}` } });
+      if (!res.ok) {
+        if (res.status === 401 || res.status === 403) {
+          clearToken();
+          showGate();
+          return;
+        }
+        showWithdrawalCheckAlert("Could not load users.");
+        return;
+      }
+      renderWithdrawalCheckUsers(await res.json());
+    } catch (err) {
+      showWithdrawalCheckAlert("Could not reach the server. Is the FastAPI backend running?");
+    }
+  }
+
+  withdrawalCheckUserSearch?.addEventListener("input", () => {
+    clearTimeout(withdrawalCheckSearchDebounce);
+    withdrawalCheckSearchDebounce = setTimeout(loadWithdrawalCheckUsers, 350);
+  });
+
+  // Apply the same check to every user at once.
+  withdrawalCheckAllForm?.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    clearWithdrawalCheckAlert();
+
+    const amount = Number(withdrawalCheckAllAmount.value);
+    if (!amount || amount <= 0) {
+      showWithdrawalCheckAlert("Please enter a valid amount.");
+      return;
+    }
+
+    withdrawalCheckAllBtn.classList.add("is-loading");
+    withdrawalCheckAllBtn.disabled = true;
+
+    try {
+      const token = getToken();
+      const res = await fetch(`${API_BASE_URL}/api/admin/withdrawal-check/all`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({
+          required_investment: amount,
+          message: withdrawalCheckAllMessage.value.trim() || null,
+        }),
+      });
+      const data = await res.json();
+
+      if (!res.ok) {
+        showWithdrawalCheckAlert(formatApiError(data));
+        return;
+      }
+
+      showWithdrawalCheckAlert(`Check of ${formatPkr(amount)} applied to ${data.updated_count} user(s).`, "success");
+      loadWithdrawalCheckUsers();
+    } catch (err) {
+      showWithdrawalCheckAlert("Could not reach the server. Is the FastAPI backend running?");
+    } finally {
+      withdrawalCheckAllBtn.classList.remove("is-loading");
+      withdrawalCheckAllBtn.disabled = false;
+    }
+  });
+
+  withdrawalCheckClearAllBtn?.addEventListener("click", async () => {
+    if (!confirm("Remove the withdrawal check from every user?")) return;
+    clearWithdrawalCheckAlert();
+
+    try {
+      const token = getToken();
+      const res = await fetch(`${API_BASE_URL}/api/admin/withdrawal-check/all`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!res.ok && res.status !== 204) {
+        const data = await res.json();
+        showWithdrawalCheckAlert(formatApiError(data));
+        return;
+      }
+      showWithdrawalCheckAlert("All withdrawal checks cleared.", "success");
+      loadWithdrawalCheckUsers();
+    } catch (err) {
+      showWithdrawalCheckAlert("Could not reach the server. Is the FastAPI backend running?");
+    }
+  });
+
+  async function clearWithdrawalCheck(userId) {
+    const target = withdrawalCheckUsers.find((u) => u.id === userId);
+    const userName = target ? target.full_name : "this user";
+    if (!confirm(`Clear the withdrawal check for ${userName}?`)) return;
+    clearWithdrawalCheckAlert();
+
+    try {
+      const token = getToken();
+      const res = await fetch(`${API_BASE_URL}/api/admin/withdrawal-check/users/${userId}`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!res.ok && res.status !== 204) {
+        const data = await res.json();
+        showWithdrawalCheckAlert(formatApiError(data));
+        return;
+      }
+      showWithdrawalCheckAlert(`Check cleared for ${userName}.`, "success");
+      loadWithdrawalCheckUsers();
+    } catch (err) {
+      showWithdrawalCheckAlert("Could not reach the server. Is the FastAPI backend running?");
+    }
+  }
+
+  function openWithdrawalCheckModal(userId) {
+    const target = withdrawalCheckUsers.find((u) => u.id === userId);
+    if (!target) return;
+
+    withdrawalCheckTargetUserId = userId;
+    withdrawalCheckForm.reset();
+    withdrawalCheckModalAlert.className = "auth-alert";
+    withdrawalCheckModalSubtitle.textContent = `Set the amount ${target.full_name} must invest to unlock withdrawals.`;
+    withdrawalCheckAmount.value =
+      target.gate_required !== null && target.gate_required !== undefined ? target.gate_required : "";
+    withdrawalCheckMessage.value = target.gate_message || "";
+    withdrawalCheckModalOverlay.classList.add("open");
+    document.body.style.overflow = "hidden";
+  }
+
+  function closeWithdrawalCheckModal() {
+    withdrawalCheckModalOverlay.classList.remove("open");
+    document.body.style.overflow = "";
+    withdrawalCheckTargetUserId = null;
+  }
+
+  withdrawalCheckModalClose?.addEventListener("click", closeWithdrawalCheckModal);
+  withdrawalCheckModalOverlay?.addEventListener("click", (e) => {
+    if (e.target === withdrawalCheckModalOverlay) closeWithdrawalCheckModal();
+  });
+
+  withdrawalCheckForm?.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    withdrawalCheckModalAlert.className = "auth-alert";
+
+    const amount = Number(withdrawalCheckAmount.value);
+    if (!amount || amount <= 0) {
+      withdrawalCheckModalAlert.textContent = "Please enter a valid amount.";
+      withdrawalCheckModalAlert.className = "auth-alert show error";
+      return;
+    }
+
+    withdrawalCheckSubmitBtn.classList.add("is-loading");
+    withdrawalCheckSubmitBtn.disabled = true;
+
+    try {
+      const token = getToken();
+      const res = await fetch(`${API_BASE_URL}/api/admin/withdrawal-check/users/${withdrawalCheckTargetUserId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({
+          required_investment: amount,
+          message: withdrawalCheckMessage.value.trim() || null,
+        }),
+      });
+      const data = await res.json();
+
+      if (!res.ok) {
+        withdrawalCheckModalAlert.textContent = formatApiError(data);
+        withdrawalCheckModalAlert.className = "auth-alert show error";
+        return;
+      }
+
+      closeWithdrawalCheckModal();
+      showWithdrawalCheckAlert(`Check of ${formatPkr(amount)} saved.`, "success");
+      loadWithdrawalCheckUsers();
+    } catch (err) {
+      withdrawalCheckModalAlert.textContent = "Could not reach the server. Is the FastAPI backend running?";
+      withdrawalCheckModalAlert.className = "auth-alert show error";
+    } finally {
+      withdrawalCheckSubmitBtn.classList.remove("is-loading");
+      withdrawalCheckSubmitBtn.disabled = false;
     }
   });
 
