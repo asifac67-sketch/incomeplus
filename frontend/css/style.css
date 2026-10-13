@@ -2164,6 +2164,21 @@ ul { list-style: none; }
 
 .footer-copy { color: var(--text-muted); font-size: 0.85rem; }
 
+.footer-whatsapp {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  border-radius: 999px;
+  background: rgba(37, 211, 102, 0.12);
+  border: 1px solid rgba(37, 211, 102, 0.4);
+  color: #25d366;
+  font-size: 0.88rem;
+  font-weight: 600;
+}
+.footer-whatsapp:hover { background: rgba(37, 211, 102, 0.2); }
+.footer-whatsapp i { font-size: 1.1rem; }
+
 /* ============================================
    Auth Modal
 ============================================ */
